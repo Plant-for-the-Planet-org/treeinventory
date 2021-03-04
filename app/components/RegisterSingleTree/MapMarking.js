@@ -401,8 +401,8 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
           accuracyInMeters < 10 && accuracyInMeters > 0
             ? { backgroundColor: '#1CE003' }
             : accuracyInMeters < 30 && accuracyInMeters > 0
-              ? { backgroundColor: '#FFC400' }
-              : { backgroundColor: '#FF0000' },
+            ? { backgroundColor: '#FFC400' }
+            : { backgroundColor: '#FF0000' },
         ]}
         onPress={() => setIsAccuracyModalShow(true)}>
         <Text style={styles.gpsText}>GPS ~{Math.round(accuracyInMeters * 100) / 100}m</Text>
@@ -424,6 +424,8 @@ const MapMarking = ({ updateScreenState, inventoryState, resetRouteStack }) => {
             disabled={loader}
             btnText={i18next.t('label.tree_map_marking_btn')}
             style={styles.bottomBtnWith}
+            testID={'tree_map_marking_btn'}
+            accessibilityLabel={'tree_map_marking_btn'}
           />
         </View>
       </View>

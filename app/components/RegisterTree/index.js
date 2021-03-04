@@ -69,7 +69,7 @@ const RegisterTree = ({ navigation }) => {
           btnText={i18next.t('label.continue')}
           theme={'primary'}
           testID={'btn_rt_continue'}
-          accessibilityLabel={'Continue'}
+          accessibilityLabel={'btn_rt_continue'}
         />
       </View>
     </SafeAreaView>

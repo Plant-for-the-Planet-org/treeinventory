@@ -211,7 +211,7 @@ const MainScreen = ({ navigation }) => {
       {loadingState.isLoading ? (
         <Loader isLoaderShow={true} />
       ) : (
-        <View style={styles.container}>
+        <View style={styles.container} testID="app-root" accessibilityLabel="app-root">
           <ScrollView style={styles.safeAreaViewCont} showsVerticalScrollIndicator={false}>
             <View
               style={{
@@ -290,7 +290,7 @@ const MainScreen = ({ navigation }) => {
             onPress={() => onPressLargeButtons('RegisterTree')}
             btnText={i18next.t('label.register_tree')}
             testID={'btn_register_trees'}
-            accessibilityLabel={'Register Tree'}
+            accessibilityLabel={'btn_register_trees'}
           />
           {!isUserLogin ? (
             <View
