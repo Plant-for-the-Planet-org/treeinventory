@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import { Colors, Typography } from '_styles';
+import dbLog from '../../../repositories/logs';
+import { LogTypes } from '../../../utils/constants';
 import { copyImageAndGetData } from '../../../utils/FSInteration';
 import Header from '../Header';
 import PrimaryButton from '../PrimaryButton';
@@ -34,6 +36,11 @@ export default function Camera({ handleCamera }) {
     const options = { base64: true };
     const data = await camera.current.takePictureAsync(options).catch((err) => {
       alert(i18next.t('label.permission_camera_message'));
+      dbLog.error({
+        logType: LogTypes.OTHER,
+        message: `Failed to take picture ${err}`,
+        logStack: JSON.stringify(err),
+      });
       setImagePath('');
       setBase64Image('');
       return;

@@ -3,7 +3,8 @@
   "tree_mapper": "Mapa de árboles",
   "tree_inventory": "Inventario de arboles",
   "tree_inventory_sub_header": "de los proyectos y registros pendientes",
+  "download_maps": "Mapas disponibles sin internet",
   "download_maps_sub_header": "para uso offline",
-  "learn": "Aprender",
-  "learn_sub_header": "cómo usar el Mapa de Árboles"
+  "register_tree": "Registrar árboles",
+  "loading_content": "Cargando contenido..."
 }

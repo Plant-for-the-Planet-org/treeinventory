@@ -1,10 +1,23 @@
 import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography } from '../../styles';
 import Icon from 'react-native-vector-icons/Feather';
 import { SINGLE } from '../../utils/inventoryConstants';
+import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
 
-const SearchSpecies = ({
+interface SearchSpeciesProps {
+  searchList: ScientificSpeciesType[];
+  toggleUserSpecies: (guid: string, addSpecie?: boolean) => Promise<unknown>;
+  registrationType: any;
+  onPressSpeciesSingle: any;
+  addSpecieToInventory: (specie: any) => void;
+  editOnlySpecieName: any;
+  onPressBack: (() => void) | undefined;
+  clearSearchText: any;
+  isSampleTree: boolean;
+}
+
+const SearchSpecies: React.FC<SearchSpeciesProps> = ({
   searchList,
   toggleUserSpecies,
   registrationType,
@@ -15,7 +28,13 @@ const SearchSpecies = ({
   clearSearchText,
   isSampleTree,
 }) => {
-  const renderSearchSpecieCard = ({ item, index }) => {
+  const renderSearchSpecieCard = ({
+    item,
+    index,
+  }: {
+    item: ScientificSpeciesType;
+    index: number;
+  }) => {
     const isCheck = item.isUserSpecies;
 
     const SpecieListItem = () => {
@@ -54,7 +73,7 @@ const SearchSpecies = ({
           if (registrationType || isSampleTree) {
             addSpecieToInventory(item);
           }
-          if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree)) {
+          if (editOnlySpecieName && (registrationType === SINGLE || isSampleTree) && onPressBack) {
             onPressBack();
           } else if (registrationType === SINGLE && !editOnlySpecieName) {
             onPressSpeciesSingle(item);

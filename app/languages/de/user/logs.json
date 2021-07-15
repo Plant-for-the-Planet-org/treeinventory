@@ -2,5 +2,8 @@
   "logs_page_title": "Aktivitäten anschauen",
   "logs_all": "Alle",
   "logs_errors": "Fehler",
-  "logs_date": "{{date, YYYY-MM-DD hh:mm:ss}}"
+  "logs_date": "{{date, YYYY-MM-DD hh:mm:ss}}",
+  "share_activity_logs_title": "Aktivitäten teilen",
+  "share_logs_file_name": "TreeMapper v{{version}} Logs",
+  "creating_logs_file_share": "Erzeuge Logdatei zum Teilen.\n Das kann eine Weile dauern."
 }

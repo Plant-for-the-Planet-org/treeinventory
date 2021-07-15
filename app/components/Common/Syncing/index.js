@@ -8,6 +8,10 @@ import { InventoryContext } from '../../../reducers/inventory';
 import i18next from 'i18next';
 import { UserContext } from '../../../reducers/user';
 import { useNavigation } from '@react-navigation/native';
+import dbLog from '../../../repositories/logs';
+import { LogTypes } from '../../../utils/constants';
+import { useNetInfo } from '@react-native-community/netinfo';
+import AlertModal from '../AlertModal';
 
 export default function Syncing({
   uploadCount,
@@ -18,8 +22,10 @@ export default function Syncing({
   borderLess = false,
 }) {
   const [syncText, setSyncText] = useState('');
+  const [offlineModal, setOfflineModal] = useState(false);
 
   const navigation = useNavigation();
+  const netInfo = useNetInfo();
 
   const { dispatch } = useContext(InventoryContext);
   const { dispatch: userDispatch } = useContext(UserContext);
@@ -50,26 +56,50 @@ export default function Syncing({
   }, [pendingCount, uploadCount, isUploading]);
 
   const onPressUploadNow = () => {
-    uploadInventoryData(dispatch, userDispatch).catch((err) => {
-      if (err?.response?.status === 303) {
-        navigation.navigate('SignUp');
-      } else if (err.error !== 'a0.session.user_cancelled') {
-        setEmailAlert(true);
-      }
-    });
+    if (netInfo.isConnected && netInfo.isInternetReachable) {
+      uploadInventoryData(dispatch, userDispatch).catch((err) => {
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: 'Failed to upload Inventories',
+          logStack: JSON.stringify(err),
+        });
+        if (err?.response?.status === 303) {
+          navigation.navigate('SignUp');
+        } else if (err.error !== 'a0.session.user_cancelled') {
+          setEmailAlert(true);
+        }
+      });
+    } else {
+      setOfflineModal(true);
+    }
   };
-
+  const OfflineModal = () => {
+    return (
+      <AlertModal
+        visible={offlineModal}
+        heading={i18next.t('label.network_error')}
+        message={i18next.t('label.network_error_message')}
+        primaryBtnText={i18next.t('label.ok')}
+        onPressPrimaryBtn={() => {
+          setOfflineModal(false);
+        }}
+      />
+    );
+  };
   const renderSyncContainer = () => {
     return (
-      <View style={[styles.syncContainer, borderLess ? {} : { borderWidth: 1, marginRight: 10 }]}>
-        {isUploading ? (
-          <RotatingView isClockwise={false}>
+      <View>
+        <View style={[styles.syncContainer, borderLess ? {} : { borderWidth: 1, marginRight: 10 }]}>
+          {isUploading ? (
+            <RotatingView isClockwise={false}>
+              <Icon size={24} name="sync" color={Colors.PRIMARY} />
+            </RotatingView>
+          ) : (
             <Icon size={24} name="sync" color={Colors.PRIMARY} />
-          </RotatingView>
-        ) : (
-          <Icon size={24} name="sync" color={Colors.PRIMARY} />
-        )}
-        <Text style={styles.syncText}>{syncText}</Text>
+          )}
+          <Text style={styles.syncText}>{syncText}</Text>
+        </View>
+        <OfflineModal />
       </View>
     );
   };

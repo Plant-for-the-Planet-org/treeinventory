@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-community/async-storage';
-import { deleteOldLogs } from '../repositories/logs';
+import dbLog, { deleteOldLogs } from '../repositories/logs';
+import { LogTypes } from './constants';
 
 // This function checks everyday if there are any older logs stored in the db which needs to be deleted
 export const dailyLogUpdateCheck = async () => {
@@ -16,10 +17,13 @@ export const dailyLogUpdateCheck = async () => {
 //to retrieve the updatedLogDate from AsyncStorage
 const getLogUpdateDate = async () => {
   try {
-    const updatedLogDate = await AsyncStorage.getItem('updatedLogDate');
-
-    return updatedLogDate;
+    return await AsyncStorage.getItem('updatedLogDate');
   } catch (err) {
+    dbLog.error({
+      logType: LogTypes.OTHER,
+      message: 'Error while getting updated log date from AsyncStorage',
+      logStack: JSON.stringify(err),
+    });
     // error reading value
     console.error(`Error at /utils/logs/getLogUpdateDate, ${JSON.stringify(err)}`);
     return false;
@@ -27,10 +31,15 @@ const getLogUpdateDate = async () => {
 };
 
 //to set the updatedLogDate in the AsyncStorage
-const setUpdatedLogDate = async (date) => {
+const setUpdatedLogDate = async (date: string) => {
   try {
     await AsyncStorage.setItem('updatedLogDate', `${date}`);
   } catch (err) {
+    dbLog.error({
+      logType: LogTypes.OTHER,
+      message: 'Error while updating log date in AsyncStorage',
+      logStack: JSON.stringify(err),
+    });
     // error saving storing updateLogDate to AsyncStorage
     console.error(`Error at /utils/logs/setUpdatedLogDate, ${JSON.stringify(err)}`);
   }

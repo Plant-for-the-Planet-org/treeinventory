@@ -1,1 +1,25 @@
-{ }
+{
+  "locate_tree_header": "Individuare gli alberi",
+  "locate_tree_heading": "Sul posto (preferito)",
+  "locate_tree_sub_heading": "Raccoglie poligoni e immagini per un'elevata precisione e verificabilità",
+  "locate_tree_off_site": "Fuori sede - Poligono",
+  "locate_tree_off_site_sub_heading": "Raccoglie Polygon. Meglio usare quando si registra dall'ufficio.",
+  "locate_tree_off_site_point_heading": "Fuori sede - Punto",
+  "locate_tree_off_site_point_sub_heading": "Solo latitudine e longitudine",
+  "locate_tree_geo_json": "Caricare GeoJson",
+  "info_graphic_header_1": "Bene!",
+  "info_graphic_sub_header_1": "Ora, per favore cammina fino al prossimo angolo e tocca continua quando sei pronto",
+  "info_graphic_header_2": "Grande!",
+  "info_graphic_header_3": "Grande!",
+  "info_graphic_sub_header_2": "Ora, per favore cammina fino al prossimo angolo e tocca continua quando sei pronto",
+  "info_graphic_sub_header_3": "Se il prossimo angolo è il tuo punto di partenza, tocca Complete. Altrimenti cammina fino al prossimo angolo.",
+  "locate_tree_map_marking_sub_header": "Visita il primo angolo della piantagione e seleziona la tua posizione",
+  "locate_tree_add_marker_valid": "Siete nella stessa posizione. Si prega di camminare fino alla prossima posizione.",
+  "locate_tree_add_marker_invalid": "Siete molto lontani dalla vostra posizione attuale.",
+  "locate_tree_cannot_mark_location": "Non è possibile contrassegnare questa posizione.",
+  "locate_tree_alphabets": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  "locate_tree_location": "Posizione",
+  "locate_tree_cannot_record_tree": "Impossibile registrare l'albero dei campioni.",
+  "locate_tree_cannot_record_tree_outside_polygon": "L'albero campione può essere registrato solo all'interno del sito segnato.",
+  "locate_tree_unable_to_retrieve_location": "Impossibile recuperare la posizione."
+}

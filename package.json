@@ -1,6 +1,6 @@
 {
   "name": "treemapper",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "scripts": {
     "android": "ENVFILE=.env.develop react-native run-android --variant 'developDebug'",
@@ -48,7 +48,7 @@
     "react-native-get-random-values": "^1.5.1",
     "react-native-inappbrowser-reborn": "^3.5.1",
     "react-native-localize": "^1.4.3",
-    "react-native-material-menu": "^1.2.0",
+    "react-native-material-menu": "git+https://github.com/ankitecd/react-native-material-menu.git",
     "react-native-modal-datetime-picker": "^8.9.3",
     "react-native-reanimated": "^1.13.2",
     "react-native-redash": "^16.0.11",
@@ -59,7 +59,6 @@
     "react-native-svg": "^12.1.1",
     "react-native-tab-view": "^2.15.2",
     "react-native-vector-icons": "^6.7.0",
-    "react-native-video": "^4.4.5",
     "react-native-zip-archive": "^5.0.6",
     "realm": "^10.2.0",
     "uuid": "^8.3.2"

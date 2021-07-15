@@ -20,6 +20,8 @@ import { Colors, Typography } from '_styles';
 import { createOfflineMap, getAllOfflineMaps, getAreaName } from '../../repositories/maps';
 import { permission } from '../../utils/permissions';
 import { AlertModal, Header, PrimaryButton } from '../Common';
+import dbLog from '../../repositories/logs';
+import { LogTypes } from '../../utils/constants';
 
 MapboxGL.setAccessToken(Config.MAPBOXGL_ACCCESS_TOKEN);
 const IS_ANDROID = Platform.OS === 'android';
@@ -79,6 +81,11 @@ const DownloadMap = ({ navigation }) => {
         );
       })
       .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.OTHER,
+          message: 'Error while checking location permission',
+          logStack: JSON.stringify(err),
+        });
         if (err.message === 'blocked') {
           setIsPermissionBlockedAlertShow(true);
         }
@@ -112,6 +119,11 @@ const DownloadMap = ({ navigation }) => {
                   setAreaName('');
                 })
                 .catch((err) => {
+                  dbLog.error({
+                    logType: LogTypes.OTHER,
+                    message: 'Error while creating Offline Map',
+                    logStack: JSON.stringify(err),
+                  });
                   setIsLoaderShow(false);
                   setAreaName('');
                   alert(i18next.t('label.download_map_area_exists'));
@@ -138,6 +150,11 @@ const DownloadMap = ({ navigation }) => {
           );
         })
         .catch((err) => {
+          dbLog.error({
+            logType: LogTypes.OTHER,
+            message: 'Error while getting area name',
+            logStack: JSON.stringify(err),
+          });
           setIsLoaderShow(false);
           setAreaName('');
           alert(i18next.t('label.download_map_area_failed'));

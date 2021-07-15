@@ -13,7 +13,7 @@ import {
   SYNCED,
 } from '../../../utils/inventoryConstants';
 
-export default function InventoryList({ inventoryList, accessibilityLabel }) {
+export default function InventoryList({ inventoryList, accessibilityLabel, countryCode }) {
   const navigation = useNavigation();
 
   const { dispatch } = useContext(InventoryContext);
@@ -79,12 +79,16 @@ export default function InventoryList({ inventoryList, accessibilityLabel }) {
           title: title,
           subHeading: locateTreeAndType,
           date: i18next.t('label.inventory_overview_date', {
-            date: item.plantation_date,
+            date: item.registrationDate,
           }),
           imageURL,
           cdnImageUrl,
           status: item.status,
           treeType: item.treeType,
+          diameter: item.specieDiameter,
+          height: item.specieHeight,
+          tagId: item.tagId,
+          countryCode: countryCode,
         };
 
         return (

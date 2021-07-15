@@ -6,6 +6,6 @@
   "recommend_at_least_sample_trees": "We recommend you take at least 10-12 sample trees at random.",
   "how_many_sample_trees_to_record": "How many trees would you like to record?",
   "invalid_tree_count": "Invalid tree count",
-  "enter_valid_tree_count": "You should sample at least 5 trees.",
+  "enter_valid_tree_count": "You should sample at least 5 and at the most 999 trees.",
   "add_another": "Add Another"
 }

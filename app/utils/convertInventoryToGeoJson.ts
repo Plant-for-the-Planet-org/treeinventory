@@ -1,22 +1,17 @@
-import {
-  getFormattedAppAdditionalDetailsFromInventory,
-  getFormattedMetadata,
-} from './additionalData/functions';
+import { appAdditionalDataForAPI, getFormattedMetadata } from './additionalData/functions';
 import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from './inventoryConstants';
 
 export default function getGeoJsonData(inventoryData: any) {
   let featureList;
-  let appAdditionalDetails: any = [];
+  let appAdditionalDetails: any = {};
   if (
     inventoryData &&
     (inventoryData.status === INCOMPLETE || inventoryData.status === INCOMPLETE_SAMPLE_TREE)
   ) {
-    appAdditionalDetails = getFormattedAppAdditionalDetailsFromInventory({ data: inventoryData });
+    appAdditionalDetails = appAdditionalDataForAPI({ data: inventoryData });
   }
-  const metadata = getFormattedMetadata([
-    ...inventoryData.additionalDetails,
-    ...appAdditionalDetails,
-  ]);
+  const metadata = getFormattedMetadata([...inventoryData.additionalDetails]);
+  metadata.app = { ...metadata.app, ...appAdditionalDetails };
 
   if (
     inventoryData.polygons[0].coordinates.length === 1 &&
@@ -62,15 +57,13 @@ export default function getGeoJsonData(inventoryData: any) {
           inventoryData.status === INCOMPLETE ||
           inventoryData.status === INCOMPLETE_SAMPLE_TREE
         ) {
-          appAdditionalDetails = getFormattedAppAdditionalDetailsFromInventory({
+          appAdditionalDetails = appAdditionalDataForAPI({
             data: sampleTree,
             isSampleTree: true,
           });
         }
-        const metadata = getFormattedMetadata([
-          ...sampleTree.additionalDetails,
-          ...appAdditionalDetails,
-        ]);
+        const metadata = getFormattedMetadata([...sampleTree.additionalDetails]);
+        metadata.app = { ...metadata.app, ...appAdditionalDetails };
 
         featureList.push({
           type: 'Feature',

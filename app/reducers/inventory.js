@@ -8,6 +8,7 @@ import {
   INITIATE_INVENTORY_STATE,
   DELETE_INVENTORY_ID,
   UPDATE_PROGRESS_COUNT,
+  SET_SKIP_TO_INVENTORY_OVERVIEW
 } from '../actions/Types';
 
 // stores the initial properties of the inventory state
@@ -19,6 +20,7 @@ const initialState = {
   uploadCount: 0,
   isUploading: false,
   progressCount: 0,
+  skipToInventoryOverview: false,
 };
 
 // Inventory reducer function which takes the state and action param
@@ -106,6 +108,13 @@ const inventoryReducer = (state = initialState, action) => {
       return {
         ...state,
         allInventory: [...state.allInventory, action.payload],
+      };
+
+    // changes the skipToInventoryOverview value
+    case SET_SKIP_TO_INVENTORY_OVERVIEW:
+      return {
+        ...state,
+        skipToInventoryOverview: action.payload
       };
     default:
       return state;

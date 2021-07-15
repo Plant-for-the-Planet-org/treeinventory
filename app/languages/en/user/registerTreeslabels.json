@@ -24,5 +24,6 @@
   "total_trees_header": "Total Trees",
   "add_all_trees_planted_on_site": "Please add the list of all trees planted in the site.",
   "select_species_and_add_sample": "Select a species from below and add a sample tree for that species.",
-  "add_sample_tree": "Add Sample tree"
+  "add_sample_tree": "Add Sample tree",
+  "select_species": "Select Species"
 }

@@ -2,5 +2,8 @@
   "logs_page_title": "Registro de actividades",
   "logs_all": "Todo",
   "logs_errors": "Errores",
-  "logs_date": "{{item.title}}"
+  "logs_date": "{{item.title}}",
+  "share_activity_logs_title": "Compartir registros de actividad",
+  "share_logs_file_name": "Registros de TreeMapper v{{version}} ",
+  "creating_logs_file_share": "Crear archivos de registro para compartir.\n Esto puede llevar algún tiempo."
 }

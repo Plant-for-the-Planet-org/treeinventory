@@ -13,6 +13,8 @@
   "select_species_card": "Cartão da espécie (Species Card)",
   "select_species_add_measurements": "Adicionar medidas",
   "select_species_diameter": "Diâmetro",
+  "measurement_basal_diameter": "Diâmetro Basal",
+  "measurement_DBH": "Diâmetro à Altura do peito (DBH)",
   "select_species_height": "Altura",
   "select_species_tree_tag": "Etiqueta da árvore",
   "select_species_inches": "Polegadas",
@@ -43,6 +45,7 @@
   "select_species_looks_empty_here": "Aqui está vazio!",
   "select_species_add_species_desscription": "Adicione espécies à sua lista, pesquisando as espécies",
   "select_species_tree_species": "Espécies de Árvores",
+  "sample_one_tree_for_each_species": "Por favor, prove pelo menos uma árvore para cada espécie plantada.",
   "species_name": "Nome da Espécie",
   "add_image": "Adicionar imagem",
   "species_description": "Descrição",
@@ -50,5 +53,12 @@
   "sync": "Sincronizar",
   "species_sync_might_take_time": "Sincronizando espécies, isso pode levar um tempo.",
   "all_species_synced": "Todas as espécies estão sincronizadas.",
-  "sync_required_message": "A sua espécie não sincronizou completamente online!\n\nA desconexão irá remover estas espécies, por isso, considere sincronizá-las primeiro."
+  "sync_required_message": "A sua espécie não sincronizou completamente online!\n\nA desconexão irá remover estas espécies, por isso, considere sincronizá-las primeiro.",
+  "measurement_diameter_info": "Se uma árvore tiver mais de {{height}} {{unit}} de altura, por favor meça o diâmetro do caule em {{height}} {{unit}} (DBH). Caso contrário, por favor, meça o diâmetro do caule na base da árvore (Diâmetro Basal)",
+  "check_again": "Verifique novamente",
+  "not_optimal_ratio": "Razão não óptima",
+  "not_optimal_ratio_message": "A relação altura/diâmetro não se situa entre o intervalo ideal da relação que se situa entre 2:1 (altura mínima:diâmetro) e 160:1 (altura máxima:diâmetro). Você tem certeza de que quer continuar?",
+  "delete_species": "Eliminar Espécie?",
+  "delete_species_delete_sample_tree_warning": "Se você apagar esta espécie, a(s) árvore(s) de amostra relacionada(s) com esta espécie também será(ão) apagada(s). Você tem certeza de que quer excluir?",
+  "zero_tree_count_species_delete_sample_tree_warning": "Esta espécie será eliminada se a contagem de árvores estiver em 0 e a(s) árvore(s) de amostra relacionada(s) com esta espécie será(ão) também eliminada(s). Você tem certeza de que quer definir a contagem de árvores como zero?"
 }

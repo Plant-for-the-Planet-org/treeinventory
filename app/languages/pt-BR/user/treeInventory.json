@@ -1,6 +1,7 @@
 {
   "tree_inventory_loading_modal": "Uploading......",
   "tree_inventory_left_text": "Upload Pendente",
+  "tree_inventory_left_text_uploading": "Upload em andamento",
   "tree_inventory_right_text": "Faça upload agora",
   "tree_inventory_view_upload": "Ver todos os itens carregados",
   "tree_inventory_incomplete_registrations": "Inscrições Incompletas",
@@ -12,6 +13,7 @@
   "tree_inventory_upload_empty_btn_text": "Voltar para Inventário.",
   "tree_inventory_alert_header": "Tem certeza?",
   "tree_inventory_alert_sub_header": "Os registos estão seguros na nuvem. Uma vez eliminados os registos, atualmente não é possível recuperá-los neste app.",
+  "tree_inventory_alert_sub_header2": "As imagens serão apagadas do sistema de arquivo. Você ainda poderá ver as imagens com boa conexão à internet.",
   "tree_inventory_alert_primary_btn_text": "Confirmar exclusão",
   "tree_inventory_clear_all": "Limpar tudo",
   "tree_inventory_free_up_space": "Libere espaço",

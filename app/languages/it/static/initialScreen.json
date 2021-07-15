@@ -1,1 +1,11 @@
-{ }
+{
+  "updating_species": "Aggiornamento delle specie",
+  "running_migration": "Eseguire una migrazione",
+  "migration_description": "Hai recentemente aggiornato la tua app. Si prega di non chiudere l'app perché stiamo applicando le modifiche per garantire la compatibilità.",
+  "species_data_status": "Controllo dello stato dei dati delle specie.",
+  "downloading_archive": "Scaricare l'archivio delle specie.",
+  "unzipping_archive": "Decomprimere l'archivio delle specie.",
+  "fetch_and_add_species_to_database": "Recupero e aggiunta di specie nel database.",
+  "species_data_loaded": "Dati della specie caricati.",
+  "please_wait": "Si prega di attendere ..."
+}

@@ -22,7 +22,10 @@ const CreatePolygon = ({ route }) => {
       updateLastScreen(data);
       getInventory({ inventoryID: state.inventoryID }).then((inventory) => {
         let coordinatesLength = inventory.polygons[0].coordinates.length;
-        if (!inventory.polygons[0].coordinates[coordinatesLength - 1].imageUrl) {
+        if (
+          !inventory.polygons[0].coordinates[coordinatesLength - 1].imageUrl &&
+          inventory.locateTree === ON_SITE
+        ) {
           updateActiveMarkerIndex(coordinatesLength - 1);
           setIsMapMarkingState(false);
         }

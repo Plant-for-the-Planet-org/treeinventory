@@ -3,5 +3,9 @@
   "tree": "Árvore",
   "trees": "Árvores",
   "next_step_to_measure_sample_trees_text": "Nos próximos passos, você será solicitado a medir as amostras de árvores para o local de plantio.",
-  "how_many_sample_trees_to_record": "Quantas árvores você gostaria de registrar?"
+  "recommend_at_least_sample_trees": "Recomendamos que você pegue pelo menos 5-10 árvores de amostra ao acaso.",
+  "how_many_sample_trees_to_record": "Quantas árvores você gostaria de registrar?",
+  "invalid_tree_count": "Contagem de árvores inválidas",
+  "enter_valid_tree_count": "Você deve amostrar pelo menos 5 árvores.",
+  "add_another": "Adicione outro"
 }

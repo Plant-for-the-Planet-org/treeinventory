@@ -6,6 +6,6 @@
   "recommend_at_least_sample_trees": "Wir empfehlen, dass du zumindest 10-12 zufällige Beispielbäume bestimmst.",
   "how_many_sample_trees_to_record": "Wie viele Bäume möchtest du aufzeichnen?",
   "invalid_tree_count": "Ungültige Baumzahl",
-  "enter_valid_tree_count": "Bitte gib mindestens 5 Bäume ein.",
+  "enter_valid_tree_count": "Du solltest mindestens 5 und maximal 999 Beispielbäume hinzufügen.",
   "add_another": "Mehr hinzufügen"
 }

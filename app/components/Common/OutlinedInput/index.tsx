@@ -1,8 +1,19 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, EasingFunction, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Animated,
+  Easing,
+  EasingFunction,
+  LayoutChangeEvent,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Colors, Typography } from '../../../styles';
-import Icon from 'react-native-vector-icons/FontAwesome5';
+import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import i18next from 'i18next';
+import IconSwitcher from '../IconSwitcher';
 
 type secureTextEntryType = true | false;
 type autoCapitalizeType = 'characters' | 'words' | 'sentences' | 'none';
@@ -37,6 +48,9 @@ interface PropTypes {
   showOptions?: boolean;
   backgroundLabelColor?: string;
   containerBackgroundColor?: string;
+  autoFocus?: boolean;
+  showInfo?: boolean;
+  infoText?: string;
 }
 
 interface CommonAnimatedPropsTypes {
@@ -98,11 +112,20 @@ const OutlinedInput = React.forwardRef(
       style = {},
       isDropdown = false,
       showOptions,
+      autoFocus = false,
+      showInfo = false,
+      infoText = '',
     }: PropTypes,
     ref,
   ) => {
     const [isFocused, setIsFocused] = useState<boolean>(false);
     const [borderColor, setBorderColor] = useState<string>(Colors.GRAY_LIGHTEST);
+    const [showInfoIconText, setShowInfoIconText] = useState<boolean>(false);
+    const [isInitial, setIsInitial] = useState<boolean>(true);
+    const [rightContainerWidth, setRightContainerWidth] = useState<number>(0);
+    const [inputWidth, setInputWidth] = useState<number>(0);
+    const [labelWidth, setLabelWidth] = useState<number>(0);
+
     const lineHeightValue: number = fontSize + 2;
     const initialTopValue: number = (height - lineHeightValue) / 2;
     const labelPositionEmptyValue: number = 0;
@@ -139,9 +162,11 @@ const OutlinedInput = React.forwardRef(
     }, [error, isFocused, value]);
 
     useEffect(() => {
-      if (!!value) {
+      if (!!value || isFocused) {
         onFocus();
-        setIsFocused(false);
+        if (isInitial) {
+          setIsFocused(false);
+        }
       } else {
         onBlur();
       }
@@ -193,13 +218,21 @@ const OutlinedInput = React.forwardRef(
       ]).start();
     }, [!!value]);
 
+    const animatedViewInitialStyle: any = {
+      position: 'absolute',
+      bottom: labelPositionRef,
+      left: 10,
+      zIndex: zIndexRef,
+      height,
+    };
+
     const animatedViewProps = {
-      style: {
-        position: 'absolute',
-        bottom: labelPositionRef,
-        left: 10,
-        zIndex: zIndexRef,
-        height,
+      style: animatedViewInitialStyle,
+      onLayout: (event: LayoutChangeEvent) => {
+        if (isInitial) {
+          setLabelWidth(event.nativeEvent.layout.width);
+          setIsInitial(false);
+        }
       },
     };
 
@@ -216,7 +249,19 @@ const OutlinedInput = React.forwardRef(
         }),
         { fontSize: fontSizeRef, lineHeight: lineHeightRef, fontFamily },
       ],
+      numberOfLines: 1,
+      ellipsizeMode: 'tail',
     };
+
+    if (!isInitial) {
+      if (!isFocused && !value) {
+        animatedViewProps.style = { ...animatedViewInitialStyle, right: rightContainerWidth + 10 };
+      } else if (labelWidth + 20 >= inputWidth) {
+        animatedViewProps.style = { ...animatedViewInitialStyle, right: 10 };
+      } else {
+        animatedViewProps.style = animatedViewInitialStyle;
+      }
+    }
 
     const inputProps = {
       secureTextEntry,
@@ -236,6 +281,7 @@ const OutlinedInput = React.forwardRef(
       onSubmitEditing,
       ref,
       editable,
+      autoFocus,
       style: [
         { fontFamily, flex: 1 },
         InputStyle({
@@ -252,7 +298,9 @@ const OutlinedInput = React.forwardRef(
     };
 
     return (
-      <View style={style}>
+      <View
+        style={style}
+        onLayout={(event: LayoutChangeEvent) => setInputWidth(event.nativeEvent.layout.width)}>
         <View style={[styles.container, { backgroundColor: containerBackgroundColor }]}>
           <Animated.View {...animatedViewProps}>
             <Animated.Text {...animatedTextProps}>{label}</Animated.Text>
@@ -282,26 +330,58 @@ const OutlinedInput = React.forwardRef(
             ) : (
               <TextInput {...inputProps} />
             )}
-            {isDropdown ? (
-              <View style={{ paddingHorizontal: 16 }}>
-                <Icon
-                  name={showOptions ? 'caret-up' : 'caret-down'}
-                  color={Colors.TEXT_COLOR}
-                  size={20}
-                />
-              </View>
-            ) : (
-              <Text
-                style={{
-                  color: Colors.TEXT_COLOR,
-                  fontFamily,
-                  fontSize: Typography.FONT_SIZE_18,
-                  // padding: 10,
-                  paddingRight: 20,
-                }}>
-                {rightText}
-              </Text>
-            )}
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+              onLayout={(event: LayoutChangeEvent) => {
+                setRightContainerWidth(event.nativeEvent.layout.width);
+              }}>
+              {isDropdown ? (
+                <View style={{ paddingHorizontal: 16 }}>
+                  <FA5Icon
+                    name={showOptions ? 'caret-up' : 'caret-down'}
+                    color={Colors.TEXT_COLOR}
+                    size={20}
+                  />
+                </View>
+              ) : rightText ? (
+                <Text
+                  style={{
+                    color: Colors.TEXT_COLOR,
+                    fontFamily,
+                    fontSize: Typography.FONT_SIZE_18,
+                    paddingRight: showInfo ? 0 : 10,
+                  }}>
+                  {rightText}
+                </Text>
+              ) : (
+                []
+              )}
+              {showInfo ? (
+                <TouchableOpacity
+                  onPress={() => setShowInfoIconText(!showInfoIconText)}
+                  style={styles.infoIconContainer}>
+                  <IconSwitcher
+                    name={'information-outline'}
+                    color={Colors.GRAY_LIGHTEST}
+                    size={20}
+                    iconType={'MCIIcon'}
+                  />
+                  {showInfoIconText ? (
+                    <View style={[styles.infoTextContainer, { maxWidth: inputWidth - 16 }]}>
+                      <Text style={styles.infoText}>{infoText}</Text>
+                    </View>
+                  ) : (
+                    []
+                  )}
+                </TouchableOpacity>
+              ) : (
+                []
+              )}
+            </View>
           </View>
         </View>
         {error ? <Text style={styles.errorText}>{error}</Text> : []}
@@ -331,7 +411,6 @@ const LabelStyle = ({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'column',
-    marginRight: 5,
     backgroundColor: Colors.WHITE,
   },
   errorText: {
@@ -339,6 +418,26 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_12,
     marginTop: 6,
+  },
+  infoIconContainer: {
+    position: 'relative',
+    padding: 10,
+  },
+  infoTextContainer: {
+    position: 'absolute',
+    right: 6,
+    top: 36,
+    padding: 10,
+    borderRadius: 8,
+    width: 300,
+    backgroundColor: Colors.TEXT_COLOR,
+    zIndex: 2,
+  },
+  infoText: {
+    fontSize: Typography.FONT_SIZE_12,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    color: Colors.WHITE,
+    textAlign: 'justify',
   },
 });
 

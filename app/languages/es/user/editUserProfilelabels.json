@@ -1,6 +1,7 @@
 {
   "edit_profile": "Editar Perfil",
   "logout": "Cerrar Sesión",
+  "logout_anyway": "Cerrar la sesión de todos modos",
   "privacy_policy": "Política de privacidad",
   "terms_of_service": "Condiciones de servicio",
   "imprint": "Aviso Legal",
@@ -13,7 +14,9 @@
   "activity_logs": "Registro de actividades",
   "all_backed_up": "Todos los cambios se han guardado",
   "upload_pending": "{{count}}pendiente",
+  "sync_remaining": "Sincronización - {{count}} restante",
   "support": "Ayuda",
   "complete_signup": "Inscripción completa",
-  "manage_projects": "Administrar los proyectos"
+  "manage_projects": "Administrar los proyectos",
+  "additional_data": "Datos adicionales"
 }

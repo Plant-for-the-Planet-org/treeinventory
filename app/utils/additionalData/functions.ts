@@ -1,4 +1,5 @@
 import RNFS from 'react-native-fs';
+import { version } from '../../../package.json';
 import {
   deleteAllAdditionalData,
   getSchemaNameFromType,
@@ -65,12 +66,15 @@ export const getFormattedAdditionalDetails = (metadata: any) => {
 
   if (metadata && Object.keys(metadata).length > 0) {
     for (const dataKey of Object.keys(metadata)) {
-      const accessType =
-        dataKey === 'public'
-          ? accessTypes.PUBLIC
-          : dataKey === 'private'
-          ? accessTypes.PRIVATE
-          : accessTypes.APP;
+      if (dataKey === accessTypes.APP) {
+        additionalDetails.push({
+          key: 'appVersion',
+          value: metadata[dataKey].appVersion,
+          accessType: accessTypes.APP,
+        });
+        continue;
+      }
+      const accessType = dataKey === 'public' ? accessTypes.PUBLIC : accessTypes.PRIVATE;
 
       for (const [key, value] of Object.entries(metadata[dataKey])) {
         additionalDetails.push({
@@ -207,96 +211,71 @@ interface IGetAppMetadata {
   isSampleTree?: boolean;
 }
 
-export const getFormattedAppAdditionalDetailsFromInventory = ({
-  data,
-  isSampleTree = false,
-}: IGetAppMetadata): any[] => {
-  const appAdditionalDetails: any[] = [];
-  if (!data) {
-    return appAdditionalDetails;
-  }
+export const appAdditionalDataForAPI = ({ data, isSampleTree = false }: IGetAppMetadata) => {
+  const appAdditionalDetails: any = {};
 
   if (data.treeType === SINGLE || isSampleTree) {
-    appAdditionalDetails.push({
-      key: 'specieHeight',
-      value: data.specieHeight.toString(),
-      accessType: accessTypes.APP,
-    });
-    appAdditionalDetails.push({
-      key: 'specieDiameter',
-      value: data.specieDiameter.toString(),
-      accessType: accessTypes.APP,
-    });
+    appAdditionalDetails['speciesHeight'] = data.specieHeight;
+    appAdditionalDetails['speciesDiameter'] = data.specieDiameter;
+
     if (data.tagId) {
-      appAdditionalDetails.push({
-        key: 'tagId',
-        value: data.tagId,
-        accessType: accessTypes.APP,
-      });
+      appAdditionalDetails['tagId'] = data.tagId;
     }
   }
 
   // adding dates to additional details
   if (data.registrationDate) {
-    appAdditionalDetails.push({
-      key: 'registrationDate',
-      value: data.registrationDate.toString(),
-      accessType: accessTypes.APP,
-    });
+    appAdditionalDetails['registrationDate'] = data.registrationDate;
   }
-  if (data.plantationDate) {
-    appAdditionalDetails.push({
-      key: 'plantationDate',
-      value: data.plantationDate.toString(),
-      accessType: accessTypes.APP,
-    });
+  if (data.plantationDate || data.plantation_date) {
+    appAdditionalDetails['plantationDate'] = data.plantationDate || data.plantation_date;
   }
 
   // adding species to additional details
   if (!isSampleTree) {
-    for (const index in data.species) {
-      const species = data.species[index];
-      appAdditionalDetails.push({
-        key: `speciesId${Number(index) + 1}`,
-        value: species.id,
-        accessType: accessTypes.APP,
-      });
-      appAdditionalDetails.push({
-        key: `speciesAliases${Number(index) + 1}`,
-        value: species.id === 'unknown' ? 'Unknown' : species.aliases,
-        accessType: accessTypes.APP,
-      });
-      appAdditionalDetails.push({
-        key: `speciesTreeCount${Number(index) + 1}`,
-        value: species.treeCount.toString(),
-        accessType: accessTypes.APP,
-      });
+    if (data.polygons.length === 0) {
+      return;
     }
+    let coords = data.polygons[0].coordinates;
 
+    appAdditionalDetails['species'] = data.species;
+    appAdditionalDetails['deviceLocation'] = [coords[0].latitude, coords[0].longitude];
     if (data.projectId) {
-      appAdditionalDetails.push({
-        key: 'projectId',
-        value: data.projectId,
-        accessType: accessTypes.APP,
-      });
+      appAdditionalDetails['projectId'] = data.projectId;
     }
   } else {
+    appAdditionalDetails['species'] = [
+      {
+        id: data.specieId,
+        aliases: data.specieId === 'unknown' ? 'Unknown' : data.specieName,
+        treeCount: 1,
+      },
+    ];
+    appAdditionalDetails['deviceLocation'] = [data.deviceLatitude, data.deviceLongitude];
+  }
+
+  appAdditionalDetails['appVersion'] = version;
+
+  return appAdditionalDetails;
+};
+
+export const additionalDataForUI = ({ data, isSampleTree = false }: IGetAppMetadata) => {
+  const appAdditionalDetails: any[] = [];
+
+  if (!isSampleTree) {
+    let coords = data.polygons[0].coordinates;
+
     appAdditionalDetails.push({
-      key: 'speciesId1',
-      value: data.specieId,
+      key: 'deviceLocation',
+      value: `${coords[0].latitude}, ${coords[0].longitude}`,
       accessType: accessTypes.APP,
     });
+  } else {
     appAdditionalDetails.push({
-      key: 'speciesAliases1',
-      value: data.specieId === 'unknown' ? 'Unknown' : data.specieName,
-      accessType: accessTypes.APP,
-    });
-    appAdditionalDetails.push({
-      key: 'speciesTreeCount1',
-      value: '1',
+      key: 'deviceLocation',
+      value: `${data?.deviceLatitude}, ${data?.deviceLongitude}`,
       accessType: accessTypes.APP,
     });
   }
-
   return appAdditionalDetails;
 };

@@ -40,6 +40,7 @@ import SelectElement from '../AdditionalData/SelectElement';
 import AdditionalDataForm from '../AdditionalData/AdditionalDataForm';
 import AddMetadata from '../AdditionalData/AddMetadata';
 import AdditionalDataSettings from '../AdditionalData/AdditionalDataSettings';
+import { AddMeasurements } from '../SelectSpecies/AddMeasurements';
 
 const Stack = createStackNavigator();
 
@@ -123,6 +124,7 @@ export default function MainNavigator() {
         options={MyTransition}
       />
       <Stack.Screen name="SpecieSampleTree" component={SpecieSampleTree} options={MyTransition} />
+      <Stack.Screen name="AddMeasurements" component={AddMeasurements} options={MyTransition} />
     </Stack.Navigator>
   );
 }

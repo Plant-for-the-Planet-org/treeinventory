@@ -14,7 +14,9 @@
   "activity_logs": "Journaux d'activité",
   "all_backed_up": "Tous les changements sauvegardés",
   "upload_pending": "{{count}} en attente",
+  "sync_remaining": "Synchronisation - {{count}} restant(s)",
   "support": "Soutien",
   "complete_signup": "Inscription complète",
-  "manage_projects": "Gérer les projets"
+  "manage_projects": "Gérer les projets",
+  "additional_data": "Données supplémentaires"
 }

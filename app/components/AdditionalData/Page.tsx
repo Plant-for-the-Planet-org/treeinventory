@@ -7,7 +7,6 @@ import FeatherIcon from 'react-native-vector-icons/Feather';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import { Colors, Typography } from '../../styles';
 import { marginTop24 } from '../../styles/design';
-import { InputModal } from '../Common';
 import SwipeDeleteRow from '../Common/SwipeDeleteRow';
 import AdditionalDataButton from './AdditionalDataButton';
 import ElementSwitcher from './ElementSwitcher';
@@ -22,6 +21,7 @@ interface IPageProps {
   updateFormElements: any;
   deleteElement: (elementIndex: any) => void;
   updateFormData: any;
+  handleShowInputModal: any;
 }
 
 const { width } = Dimensions.get('window');
@@ -35,13 +35,11 @@ export default function Page({
   formOrder,
   updateFormElements,
   deleteElement,
-  updateFormData,
+  handleShowInputModal,
 }: IPageProps) {
   const defaultPageTitle = i18next.t('label.form_page', { pageNo });
   const [dragging, setDragging] = useState<boolean>(false);
   const [pageTitle, setPageTitle] = useState<string>(defaultPageTitle);
-  const [editedPageTitle, setEditedPageTitle] = useState<string>(defaultPageTitle);
-  const [showInputModal, setShowInputModal] = useState<boolean>(false);
 
   const navigation = useNavigation();
 
@@ -84,19 +82,10 @@ export default function Page({
     [dragging, setDragging],
   );
 
-  const handlePageTitleUpdate = () => {
-    setEditedPageTitle(pageTitle);
-    setShowInputModal(true);
-  };
-
-  const updatePageTitle = () => {
-    updateFormData({ pageTitle: editedPageTitle, formId });
-  };
-
   return (
     <View style={[styles.pageContainer, pageNo > 1 ? styles.newPage : {}]}>
       <View style={[styles.formHeading, styles.paddingLeft8]}>
-        <TouchableOpacity style={styles.pageTitleContainer} onPress={handlePageTitleUpdate}>
+        <TouchableOpacity style={styles.pageTitleContainer} onPress={handleShowInputModal}>
           <Text style={styles.formHeadingText}>{pageTitle}</Text>
           <FA5Icon name="pen" size={16} color={Colors.GRAY_LIGHTEST} style={styles.pageTitleIcon} />
         </TouchableOpacity>
@@ -118,14 +107,6 @@ export default function Page({
           <AdditionalDataButton handleButtonPress={handleButtonPress} style={styles.marginLeft8} />
         )}
         dragHitSlop={{ right: -width + 50 + 36 }}
-      />
-      <InputModal
-        isOpenModal={showInputModal}
-        setIsOpenModal={setShowInputModal}
-        setValue={setEditedPageTitle}
-        value={editedPageTitle}
-        onSubmitInputField={updatePageTitle}
-        inputType={'text'}
       />
     </View>
   );

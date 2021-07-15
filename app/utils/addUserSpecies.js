@@ -256,6 +256,7 @@ const addUserSpecieToServer = (specie, alreadySyncedSpecies) => {
           dbLog.error({
             logType: LogTypes.MANAGE_SPECIES,
             message: `Failed to add user specie to server with scientific specie guid: ${specie.guid}`,
+            logStack: JSON.stringify(err),
           });
           reject(err);
         }
@@ -305,6 +306,7 @@ export const deleteUserSpecieFromServer = (specie) => {
           dbLog.error({
             logType: LogTypes.MANAGE_SPECIES,
             message: `Failed to delete user specie from server with specie id: ${specie.specieId}`,
+            logStack: JSON.stringify(err),
           });
           reject(err);
         }

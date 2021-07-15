@@ -1,6 +1,6 @@
 import { getInventory, updateInventory } from '../repositories/inventory';
 import dbLog from '../repositories/logs';
-import { getFormattedAppAdditionalDetailsFromInventory } from './additionalData/functions';
+import { appAdditionalDataForAPI } from './additionalData/functions';
 import { LogTypes } from './constants';
 import { PENDING_DATA_UPLOAD } from './inventoryConstants';
 
@@ -59,14 +59,14 @@ export const updateSampleTree = ({
         break;
       }
       case 'changeStatusToPending': {
-        const appAdditionalDetails = getFormattedAppAdditionalDetailsFromInventory({
+        const appAdditionalDetails = appAdditionalDataForAPI({
           data: sampleTree,
           isSampleTree: true,
         });
         sampleTree = {
           ...sampleTree,
           status: PENDING_DATA_UPLOAD,
-          additionalDetails: [...sampleTree.additionalDetails, ...appAdditionalDetails],
+          appMetadata: JSON.stringify(appAdditionalDetails),
         };
         inventoryData = {
           ...inventoryData,
@@ -74,11 +74,27 @@ export const updateSampleTree = ({
         };
         break;
       }
+      case 'deleteSampleTree': {
+        if (sampleTree.status === PENDING_DATA_UPLOAD) {
+          inventoryData = {
+            ...inventoryData,
+            completedSampleTreesCount: inventory.completedSampleTreesCount - 1,
+            sampleTreesCount:
+              inventory.sampleTreesCount < 6
+                ? inventory.sampleTreesCount
+                : inventory.sampleTreesCount - 1,
+          };
+        }
+        break;
+      }
       default:
         break;
     }
-
-    updatedSampleTrees[sampleTreeIndex] = sampleTree;
+    if (toUpdate === 'deleteSampleTree') {
+      updatedSampleTrees.splice(sampleTreeIndex, 1);
+    } else {
+      updatedSampleTrees[sampleTreeIndex] = sampleTree;
+    }
 
     inventoryData = {
       ...inventoryData,
@@ -108,6 +124,7 @@ export const updateSampleTree = ({
           message: `Failed to modify ${toUpdate} for sample tree #${
             sampleTreeIndex + 1
           } having inventory_id: ${inventory.inventory_id}`,
+          logStack: JSON.stringify(err),
         });
         console.error(
           `Failed to modify ${toUpdate} for sample tree #${

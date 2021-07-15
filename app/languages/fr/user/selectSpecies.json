@@ -13,6 +13,8 @@
   "select_species_card": "Carte des espèces",
   "select_species_add_measurements": "Ajouter des mesures",
   "select_species_diameter": "Diamètre",
+  "measurement_basal_diameter": "Diamètre basal",
+  "measurement_DBH": "Diamètre à hauteur de poitrine (DBH)",
   "select_species_height": "Hauteur",
   "select_species_tree_tag": "Balise d'arbre",
   "select_species_inches": "Pouce",
@@ -43,6 +45,7 @@
   "select_species_looks_empty_here": "Ça a l'air vide ici!",
   "select_species_add_species_desscription": "Ajouter des espèces à votre liste par recherche",
   "select_species_tree_species": "Espèces d'Arbres",
+  "sample_one_tree_for_each_species": "Veuillez échantillonner au moins un arbre pour chaque espèce plantée.",
   "species_name": "Nom d'espèce",
   "add_image": "Ajouter une image",
   "species_description": "Description",
@@ -50,5 +53,12 @@
   "sync": "Synchronisarion",
   "species_sync_might_take_time": "Synchroniser les espèces, peut prendre un certain temps.",
   "all_species_synced": "Toutes les espèces sont synchronisées.",
-  "sync_required_message": "Votre espèce n'est pas entièrement synchronisée en ligne! \n\nLa déconnexion entraînera la suppression de cet espèce. Veuillez donc commencer par les synchroniser."
+  "sync_required_message": "Votre espèce n'est pas entièrement synchronisée en ligne! \n\nLa déconnexion entraînera la suppression de cet espèce. Veuillez donc commencer par les synchroniser.",
+  "measurement_diameter_info": "Si un arbre a une hauteur supérieure à {{height}} {{unit}} , veuillez mesurer le diamètre du tronc à {{height}} {{unit}} (DBH). Sinon, veuillez mesurer le diamètre du tronc à la base de l'arbre (diamètre basal)",
+  "check_again": "Vérifiez à nouveau",
+  "not_optimal_ratio": "Rapport non optimal",
+  "not_optimal_ratio_message": "Le rapport hauteur/diamètre ne se situe pas dans la fourchette optimale, qui va de 2:1 (hauteur/diamètre minimum) à 160:1 (hauteur/diamètre maximum). Êtes-vous sûr de vouloir continuer ?",
+  "delete_species": "Supprimer les espèces ?",
+  "delete_species_delete_sample_tree_warning": "Si vous supprimez cette espèce, le ou les arbres échantillons liés à cette espèce seront également supprimés. Etes-vous sûr que vous voulez supprimer ?",
+  "zero_tree_count_species_delete_sample_tree_warning": "Cette espèce sera supprimée si le nombre d'arbres est fixé à 0 et le ou les arbres échantillons liés à cette espèce seront également supprimés. Êtes-vous sûr de vouloir fixer le nombre d'arbres à zéro ?"
 }

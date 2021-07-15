@@ -2,8 +2,8 @@ import Realm from 'realm';
 import { setInventoryId, updateCount, updateProgressCount } from '../actions/inventory';
 import { bugsnag } from '../utils';
 import {
+  appAdditionalDataForAPI,
   getFormattedAdditionalDetails,
-  getFormattedAppAdditionalDetailsFromInventory,
 } from '../utils/additionalData/functions';
 import { LogTypes } from '../utils/constants';
 import {
@@ -26,7 +26,7 @@ export const updateSpecieDiameter = ({ inventory_id, speciesDiameter }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory.specieDiameter = Math.round(speciesDiameter * 100) / 100;
+          inventory.specieDiameter = Math.round(speciesDiameter * 1000) / 1000;
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
@@ -54,7 +54,7 @@ export const updateSpecieHeight = ({ inventory_id, speciesHeight }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          inventory.specieHeight = Math.round(speciesHeight * 100) / 100;
+          inventory.specieHeight = Math.round(speciesHeight * 1000) / 1000;
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.INVENTORY,
@@ -104,28 +104,38 @@ export const updateTreeTag = ({ inventoryId, tagId }) => {
   });
 };
 
-export const getInventoryByStatus = (status1, status2, status3) => {
+export const getInventoryByStatus = (status) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
-        let inventory = realm.objects('Inventory');
-        if (status1 !== 'all') {
-          inventory = inventory.filtered(
-            `status == "${status1}" || status == "${status2}" || status == "${status3}"`,
-          );
+        let inventory = realm.objects('Inventory').filtered('status != null');
+        if (status.length !== 0) {
+          var query = 'status == ';
+          for (var i = 0; i < status.length; i++) {
+            query += `'${status[i]}'`;
+            if (i + 1 < status.length) {
+              query += ' || status == ';
+            }
+          }
+          inventory = inventory.filtered(query);
         }
+        let sortedInventory = inventory.sorted('registrationDate', true);
         // logging the success in to the db
         dbLog.info({
           logType: LogTypes.INVENTORY,
-          message: `Fetched inventories from DB having status ${status1} and ${status2}`,
+          message: `Fetched inventories from DB having status ${
+            status.length == 0 ? 'all' : status.join()
+          }`,
         });
-        resolve(inventory);
+        resolve(sortedInventory);
       })
       .catch((err) => {
         // logging the error in to the db
         dbLog.error({
           logType: LogTypes.INVENTORY,
-          message: `Error while fetching inventories from DB having status ${status1} and ${status2}`,
+          message: `Error while fetching inventories from DB having status ${
+            status.length == 0 ? 'all' : status.join
+          }`,
           logStack: JSON.stringify(err),
         });
         bugsnag.notify(err);
@@ -913,7 +923,6 @@ export const updateInventory = ({ inventory_id, inventoryData }) => {
           logStack: JSON.stringify(err),
         });
         reject(err);
-        console.log(err, 'err');
         bugsnag.notify(err);
       });
   });
@@ -927,18 +936,22 @@ export const addInventoryToDB = (inventoryFromServer) => {
           let species = [];
           let coordinates = [];
           //for single tree
-          if (inventoryFromServer.scientificSpecies) {
-            let specie = realm.objectForPrimaryKey(
-              'ScientificSpecies',
-              `${inventoryFromServer.scientificSpecies}`,
-            );
-            let aliases = specie.aliases ? specie.aliases : specie.scientificName;
-            let treeCount = parseInt(1);
-            let id = inventoryFromServer.scientificSpecies;
-            species.push({ aliases, treeCount, id });
+          if (inventoryFromServer.type === 'single') {
+            if (inventoryFromServer.scientificSpecies) {
+              let specie = realm.objectForPrimaryKey(
+                'ScientificSpecies',
+                `${inventoryFromServer.scientificSpecies}`,
+              );
+              let aliases = specie.aliases ? specie.aliases : specie.scientificName;
+              let treeCount = parseInt(1);
+              let id = inventoryFromServer.scientificSpecies;
+              species.push({ aliases, treeCount, id });
+            } else {
+              species.push({ aliases: 'Unknown', treeCount: parseInt(1), id: 'unknown' });
+            }
           }
           //for multiple trees
-          else if (inventoryFromServer.plantedSpecies) {
+          else if (inventoryFromServer.type == 'multi') {
             for (const plantedSpecie of inventoryFromServer.plantedSpecies) {
               let id;
               let specie;
@@ -995,11 +1008,15 @@ export const addInventoryToDB = (inventoryFromServer) => {
           }
 
           const additionalDetails = getFormattedAdditionalDetails(inventoryFromServer.metadata);
+          let appMetadata;
+          if (inventoryFromServer?.metadata?.app) {
+            appMetadata = JSON.stringify(inventoryFromServer.metadata.app);
+          }
 
           let inventoryID = `${new Date().getTime()}`;
           const inventoryData = {
             inventory_id: inventoryID,
-            plantation_date: inventoryFromServer.plantDate,
+            plantation_date: new Date(inventoryFromServer.plantDate.split(' ')[0]),
             treeType: inventoryFromServer.type,
             status: SYNCED,
             projectId: inventoryFromServer.plantProject,
@@ -1017,13 +1034,12 @@ export const addInventoryToDB = (inventoryFromServer) => {
                 ? inventoryFromServer.measurements.width
                 : null,
             tagId: inventoryFromServer.tag,
-            registrationDate: inventoryFromServer.registrationDate,
+            registrationDate: new Date(inventoryFromServer.registrationDate.split(' ')[0]),
             locationId: inventoryFromServer.id,
             additionalDetails,
+            appMetadata,
           };
-          if (inventoryFromServer.type !== SAMPLE) {
-            realm.create('Inventory', inventoryData);
-          }
+          realm.create('Inventory', inventoryData);
 
           // logging the success in to the db
           dbLog.info({
@@ -1075,11 +1091,12 @@ export const addSampleTree = (sampleTreeFromServer) => {
           let specieHeight = sampleTreeFromServer.measurements.height;
           let tagId = sampleTreeFromServer.tag;
           let status = SYNCED;
-          let plantationDate = sampleTreeFromServer.plantDate;
+          let plantationDate = new Date(sampleTreeFromServer.plantDate.split(' ')[0]);
           let locationId = sampleTreeFromServer.id;
           let treeType = SAMPLE;
           let sampleTrees = inventory[0].sampleTrees;
           const additionalDetails = getFormattedAdditionalDetails(sampleTreeFromServer.metadata);
+          const appMetadata = JSON.stringify(sampleTreeFromServer.metadata.app);
 
           const sampleTreeData = {
             latitude,
@@ -1097,6 +1114,7 @@ export const addSampleTree = (sampleTreeFromServer) => {
             locationId,
             treeType,
             additionalDetails,
+            appMetadata,
           };
           let locationIds = getFields(inventory[0].sampleTrees, 'locationId');
           if (!locationIds.includes(sampleTreeFromServer.id)) {
@@ -1145,6 +1163,11 @@ export const addCdnUrl = ({
         });
       })
       .catch((err) => {
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Error while adding app CDN image url for inventory_id: ${inventoryID}, locationId: ${locationId} & coordinate index: ${coordinateIndex}`,
+          logStack: JSON.stringify(err),
+        });
         reject(err);
         bugsnag.notify(err);
       });
@@ -1172,10 +1195,10 @@ export const addAppMetadata = ({ inventory_id }) => {
       .then((realm) => {
         realm.write(() => {
           let inventory = realm.objectForPrimaryKey('Inventory', `${inventory_id}`);
-          const appAdditionalDetails = getFormattedAppAdditionalDetailsFromInventory({
+          const appAdditionalDetails = appAdditionalDataForAPI({
             data: inventory,
           });
-          inventory.additionalDetails = [...inventory.additionalDetails, ...appAdditionalDetails];
+          inventory.appMetadata = JSON.stringify(appAdditionalDetails);
         });
         // logging the success in to the db
         dbLog.info({

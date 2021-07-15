@@ -13,6 +13,8 @@
   "select_species_card": "Species Card",
   "select_species_add_measurements": "Add Measurements",
   "select_species_diameter": "Diameter",
+  "measurement_basal_diameter": "Basal Diameter",
+  "measurement_DBH": "Diameter at Breast Height (DBH)",
   "select_species_height": "Height",
   "select_species_tree_tag": "Tree tag",
   "select_species_inches": "Inches",
@@ -51,5 +53,12 @@
   "sync": "Sync",
   "species_sync_might_take_time": "Syncing species, this might take some time.",
   "all_species_synced": "All species are synced.",
-  "sync_required_message": "Your species haven’t fully synced online!\n\nLogging out will remove these species, so please consider syncing them first."
+  "sync_required_message": "Your species haven’t fully synced online!\n\nLogging out will remove these species, so please consider syncing them first.",
+  "measurement_diameter_info": "If a tree is over {{height}} {{unit}} tall, please measure the stem diameter at {{height}} {{unit}} (DBH). Otherwise, please measure stem diameter at the base of the tree (Basal Diameter)",
+  "check_again": "Check again",
+  "not_optimal_ratio": "Not optimal ratio",
+  "not_optimal_ratio_message": "The height to diameter ratio does not fall between the optimal ratio range which is between 2:1 (minimum height:diameter) and 160:1 (maximum height:diameter). Are you sure do you want to continue?",
+  "delete_species": "Delete Species?",
+  "delete_species_delete_sample_tree_warning": "If you delete this species, the sample tree(s) related to this species will also get deleted. Are you sure, that you want to delete?",
+  "zero_tree_count_species_delete_sample_tree_warning": "This species will be deleted if tree count is set to 0 and the sample tree(s) related to this species will also get deleted. Are you sure, that you want to set tree count to zero?"
 }

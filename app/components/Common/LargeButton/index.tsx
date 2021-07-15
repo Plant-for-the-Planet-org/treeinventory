@@ -64,10 +64,12 @@ const LargeButton = ({
           <Text>{rightIcon}</Text>
         </View>
       )}
-      {notification && (
+      {notification ? (
         <View style={styles.notificationContainer}>
           <Text style={styles.notificationText}>{notification}</Text>
         </View>
+      ) : (
+        []
       )}
     </TouchableOpacity>
   );

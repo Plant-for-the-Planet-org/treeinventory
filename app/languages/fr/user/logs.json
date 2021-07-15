@@ -2,5 +2,8 @@
   "logs_page_title": "Afficher les journaux d'activité",
   "logs_all": "Tous",
   "logs_errors": "Erreurs",
-  "logs_date": "{{item.title}}"
+  "logs_date": "{{item.title}}",
+  "share_activity_logs_title": "Partager les journaux d'activité",
+  "share_logs_file_name": "Journaux de TreeMapper v{{version}} ",
+  "creating_logs_file_share": "Création d'un fichier de logs à partager.\n Cela peut prendre un certain temps"
 }

@@ -1,4 +1,11 @@
 {
+  "sample_trees": "Alberi campione",
   "tree": "Albero",
-  "trees": "Alberi"
+  "trees": "Alberi",
+  "next_step_to_measure_sample_trees_text": "Nei prossimi passi ti verrà chiesto di misurare degli alberi campione per il sito di piantagione.",
+  "recommend_at_least_sample_trees": "Si consiglia di prendere almeno 10-12 alberi campione a caso.",
+  "how_many_sample_trees_to_record": "Quanti alberi vorresti registrare?",
+  "invalid_tree_count": "Conteggio degli alberi non valido",
+  "enter_valid_tree_count": "Dovresti campionare almeno 5 alberi.",
+  "add_another": "Aggiungi un altro"
 }

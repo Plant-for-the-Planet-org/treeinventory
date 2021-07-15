@@ -1,10 +1,22 @@
-import { bugsnag } from '../utils';
-import { LogLevels } from '../utils/constants';
-import { v4 as uuidv4 } from 'uuid';
-import { LogTypes } from '../utils/constants';
-import { getSchema } from './default';
 import Realm from 'realm';
+import { v4 as uuidv4 } from 'uuid';
 import { version } from '../../package.json';
+import { bugsnag } from '../utils';
+import { LogLevels, LogTypes, TLogLevels, TLogTypes } from '../utils/constants';
+import { getSchema } from './default';
+
+interface ILogDataParams {
+  id?: string;
+  logType: TLogTypes;
+  logLevel?: TLogLevels;
+  timestamp?: Date;
+  message: string;
+  appVersion?: string;
+  referenceId?: string;
+  statusCode?: string;
+  logStack?: string;
+}
+
 /**
  * This function is used to store the logs in realm DB in ActivityLogs Schema.
  * It writes to realm while creating a log
@@ -12,13 +24,16 @@ import { version } from '../../package.json';
  * @param {object} param1 - required properties which is to be stored in db
  * @returns {boolean} - returns a promise with boolean value on whether the operation was successful or not.
  */
-const logToDB = (logLevel, { referenceId, logType, message, statusCode, logStack }) => {
+const logToDB = (
+  logLevel: TLogLevels,
+  { referenceId, logType, message, statusCode, logStack }: ILogDataParams,
+) => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
           // defines and stores the log data which is to be added in DB
-          let logData = {
+          let logData: ILogDataParams = {
             // uses uuid v4 to create a unique id i.e. primary key
             id: uuidv4(),
             logType,
@@ -63,17 +78,17 @@ const logToDB = (logLevel, { referenceId, logType, message, statusCode, logStack
 
 // defines different types of log levels in object dbLog
 const dbLog = {
-  info: (data) => logToDB(LogLevels.INFO, data),
-  warn: (data) => logToDB(LogLevels.WARN, data),
-  error: (data) => logToDB(LogLevels.ERROR, data),
+  info: (data: ILogDataParams) => logToDB(LogLevels.INFO, data),
+  warn: (data: ILogDataParams) => logToDB(LogLevels.WARN, data),
+  error: (data: ILogDataParams) => logToDB(LogLevels.ERROR, data),
 };
 
 /**
  * This function is used to retrieve all logs or error logs from database, depending upon the parameter
  * @param {string} type
- * @returns {Array} allLogs/errorLogs
+ * @returns {any} allLogs/errorLogs
  */
-export const getLogs = (type) => {
+export const getLogs = (type: 'all' | 'error') => {
   return new Promise((resolve) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -83,7 +98,9 @@ export const getLogs = (type) => {
           resolve(allLogs);
         } else if (type === 'error') {
           const allLogs = realm.objects('ActivityLogs');
-          let errorLogs = allLogs.filtered('logLevel = "ERROR"');
+          let errorLogs = allLogs
+            .filtered('logLevel = "ERROR"')
+            .filtered('TRUEPREDICATE SORT (timestamp DESC)');
           resolve(errorLogs);
         }
       })
@@ -102,12 +119,12 @@ export const deleteOldLogs = () => {
       .then((realm) => {
         realm.write(() => {
           let logs = realm.objects('ActivityLogs');
-          const currentDate = new Date();
-          // number of days to before the log should be deleted
-          const numberOfDays = 14;
+          const currentDate: any = new Date();
+          // Milliseconds in one day
+          const oneDay = 1000 * 60 * 60 * 24;
 
-          // calculates the old date using the number of days
-          let oldDate = currentDate - 1000 * 60 * 60 * 24 * numberOfDays;
+          // calculates the old date for n days
+          let oldDate: any = currentDate - oneDay * 14;
 
           oldDate = new Date(oldDate);
 
@@ -127,7 +144,7 @@ export const deleteOldLogs = () => {
             logType: LogTypes.OTHER,
             message: 'Deleted older logs',
           });
-          resolve();
+          resolve(true);
         });
       })
       .catch((err) => {
@@ -135,8 +152,9 @@ export const deleteOldLogs = () => {
         console.error(`Error at repositories/logs/deleteOldLogs, ${err}`);
         // logs the error of the failed request in DB
         dbLog.error({
-          logType: LogTypes.ERROR,
+          logType: LogTypes.OTHER,
           message: 'Failed to delete older logs',
+          logStack: JSON.stringify(err),
         });
         reject(err);
       });

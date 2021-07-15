@@ -45,5 +45,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    textAlign: 'center',
   },
 });

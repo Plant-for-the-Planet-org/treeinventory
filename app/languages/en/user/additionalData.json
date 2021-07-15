@@ -87,5 +87,6 @@
   "public": "Public",
   "private": "Private",
   "app": "App",
-  "no_additional_data_available": "No additional data available"
+  "no_additional_data_available": "No additional data available",
+  "no_form_redirect_next_screen": "No form data available.\nRedirecting to next screen."
 }

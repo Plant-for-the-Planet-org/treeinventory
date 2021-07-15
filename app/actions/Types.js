@@ -45,3 +45,6 @@ export const SET_SHOW_INITIAL_STACK = 'SET_SHOW_INITIAL_STACK';
 
 // Type to show main screens navigation stack
 export const SET_SHOW_MAIN_STACK = 'SET_SHOW_MAIN_STACK';
+
+// Type to show main screens navigation stack
+export const SET_SKIP_TO_INVENTORY_OVERVIEW = 'SET_SKIP_TO_INVENTORY_OVERVIEW';

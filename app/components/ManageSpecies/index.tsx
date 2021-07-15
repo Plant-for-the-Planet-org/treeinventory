@@ -14,19 +14,23 @@ import {
 } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Realm from 'realm';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography } from '../../styles';
 import { setSpecie } from '../../actions/species';
+import { InventoryContext } from '../../reducers/inventory';
 import { SpeciesContext } from '../../reducers/species';
 import { getSchema } from '../../repositories/default';
+import { getInventory } from '../../repositories/inventory';
 import dbLog from '../../repositories/logs';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
 import { LogTypes } from '../../utils/constants';
 import { MULTI } from '../../utils/inventoryConstants';
-import { Header, SpeciesSyncError, TreeCountModal } from '../Common';
+import { AlertModal, Header, SpeciesSyncError } from '../Common';
+import TreeCountModal from '../Common/TreeCountModal';
 import MySpecies from './MySpecies';
 import SearchSpecies from './SearchSpecies';
+import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
 
-const DismissKeyBoard = ({ children }) => {
+const DismissKeyBoard = ({ children }: { children: React.ReactNode }) => {
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       {children}
@@ -34,7 +38,21 @@ const DismissKeyBoard = ({ children }) => {
   );
 };
 
-const ManageSpecies = ({
+interface ManageSpeciesProps {
+  onPressSpeciesSingle?: () => void;
+  onPressBack?: () => void;
+  registrationType: any;
+  addSpecieToInventory: any;
+  editOnlySpecieName: any;
+  isSampleTree: any;
+  isSampleTreeCompleted?: any;
+  screen?: any;
+  retainNavigationStack?: any;
+  deleteSpeciesAndSampleTrees?: any;
+  deleteSpecie?: any;
+}
+
+const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   onPressSpeciesSingle,
   onPressBack,
   registrationType,
@@ -43,23 +61,30 @@ const ManageSpecies = ({
   isSampleTree,
   isSampleTreeCompleted,
   screen,
+  retainNavigationStack,
+  deleteSpeciesAndSampleTrees,
+  deleteSpecie,
 }) => {
   const navigation = useNavigation();
-  const [specieList, setSpecieList] = useState([]);
+  const [inventory, setInventory] = useState<any>();
+  const [specieList, setSpecieList] = useState<ScientificSpeciesType[]>([]);
   const [searchText, setSearchText] = useState('');
-  const [searchList, setSearchList] = useState([]);
+  const [searchList, setSearchList] = useState<ScientificSpeciesType[]>([]);
   const [showSearchSpecies, setShowSearchSpecies] = useState(false);
   const [showTreeCountModal, setShowTreeCountModal] = useState(false);
   const [treeCount, setTreeCount] = useState('');
-  const [activeSpecie, setActiveSpecie] = useState(undefined);
+  const [activeSpecie, setActiveSpecie] = useState<any>();
+  const [deleteSpecieAlert, setDeleteSpecieAlert] = useState(false);
+  const [speciesIndexToDelete, setSpeciesIndexToDelete] = useState<number>();
 
   const { dispatch } = useContext(SpeciesContext);
+  const { state } = useContext(InventoryContext);
 
   useEffect(() => {
     // fetches all the species already added by user when component mount
     getUserSpecies().then((userSpecies) => {
       if (registrationType) {
-        let specieListWithUnknown = [];
+        let specieListWithUnknown: ScientificSpeciesType[] = [];
         if (userSpecies && userSpecies.length > 0) {
           specieListWithUnknown = [
             ...userSpecies,
@@ -100,14 +125,21 @@ const ManageSpecies = ({
     navigation.navigate('MainScreen');
   };
 
+  useEffect(() => {
+    if (screen === 'SelectSpecies') {
+      getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+        setInventory(inventoryData);
+      });
+    }
+  }, []);
   // This function adds or removes the specie from User Species
   // ! Do not move this function to repository as state change is happening here to increase the performance
-  const toggleUserSpecies = (guid, addSpecie = false) => {
+  const toggleUserSpecies = (guid: string, addSpecie = false) => {
     return new Promise((resolve) => {
       Realm.open(getSchema())
         .then((realm) => {
           realm.write(() => {
-            let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
+            let specieToToggle: any = realm.objectForPrimaryKey('ScientificSpecies', guid);
             if (addSpecie) {
               specieToToggle.isUserSpecies = true;
             } else {
@@ -127,7 +159,7 @@ const ManageSpecies = ({
               }`,
             });
           });
-          resolve();
+          resolve(true);
         })
         .catch((err) => {
           console.error(`Error at /components/ManageSpecies/index, ${JSON.stringify(err)}`);
@@ -142,7 +174,7 @@ const ManageSpecies = ({
   };
 
   //This function handles search whenever any search text is entered
-  const handleSpeciesSearch = (text) => {
+  const handleSpeciesSearch = (text: string) => {
     setSearchText(text);
     if (text && text.length > 2) {
       setShowSearchSpecies(true);
@@ -155,36 +187,78 @@ const ManageSpecies = ({
     }
   };
 
-  const handleSpeciePress = (specie) => {
+  const handleSpeciePress = (specie: any) => {
     if (registrationType === MULTI && isSampleTreeCompleted) {
       setActiveSpecie(specie);
       setShowTreeCountModal(true);
     } else {
-      addSpecieToInventory(specie);
+      addSpecieToInventory(JSON.stringify(specie), inventory);
     }
   };
 
   const handleTreeCountNextButton = () => {
-    let specie = activeSpecie;
+    let specie: any = activeSpecie;
     specie.treeCount = Number(treeCount);
-    addSpecieToInventory(specie);
 
-    setActiveSpecie();
-    setTreeCount('');
-    setShowTreeCountModal(false);
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 2,
-        routes: [{ name: 'MainScreen' }, { name: 'TreeInventory' }, { name: 'TotalTreesSpecies' }],
-      }),
-    );
+    if ((!treeCount || Number(treeCount) === 0) && inventory.sampleTrees.length > 0) {
+      let sampleTrees = [...inventory.sampleTrees];
+      sampleTrees.every((sampleTree, index: number) => {
+        if (sampleTree.specieId === specie.guid) {
+          setSpeciesToDelete(specie, setSpeciesIndexToDelete);
+          setDeleteSpecieAlert(true);
+          return false;
+        } else if (index === sampleTrees.length - 1) {
+          setSpeciesToDelete(specie, deleteSpecie);
+          navigateAfterTreeCount();
+        } else {
+          return true;
+        }
+      });
+    } else {
+      addSpecieToInventory(JSON.stringify(specie));
+      navigateAfterTreeCount();
+    }
   };
 
-  const navigateToSpecieInfo = (specie) => {
+  const setSpeciesToDelete = (specie: any, callback: any) => {
+    for (const index in inventory?.species) {
+      if (inventory?.species[index].id === specie.guid) {
+        callback(Number(index));
+        break;
+      }
+    }
+  };
+
+  const navigateAfterTreeCount = () => {
+    setActiveSpecie(null);
+    setTreeCount('');
+    setShowTreeCountModal(false);
+    if (retainNavigationStack && onPressBack) {
+      onPressBack();
+    } else {
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 2,
+          routes: [
+            { name: 'MainScreen' },
+            { name: 'TreeInventory' },
+            { name: 'TotalTreesSpecies' },
+          ],
+        }),
+      );
+    }
+  };
+
+  const navigateToSpecieInfo = (specie: ScientificSpeciesType) => {
     setSpecie(specie)(dispatch);
     navigation.navigate('SpecieInfo', {
       screen,
     });
+  };
+
+  const handleZeroSpeciesDelete = () => {
+    deleteSpeciesAndSampleTrees(speciesIndexToDelete);
+    navigateAfterTreeCount();
   };
 
   return (
@@ -254,11 +328,10 @@ const ManageSpecies = ({
                 specieList={specieList}
                 addSpecieToInventory={handleSpeciePress}
                 editOnlySpecieName={editOnlySpecieName}
-                onPressBack={onPressBack}
+                onPressBack={onPressBack ? onPressBack : () => {}}
                 isSampleTree={isSampleTree}
-                toggleUserSpecies={toggleUserSpecies}
                 navigateToSpecieInfo={navigateToSpecieInfo}
-                screen={screen ? screen : 'ManageSpecies'}
+                screen={screen || 'ManageSpecies'}
               />
             )}
           </View>
@@ -271,6 +344,16 @@ const ManageSpecies = ({
         treeCount={treeCount}
         onPressTreeCountNextBtn={handleTreeCountNextButton}
         setShowTreeCountModal={setShowTreeCountModal}
+      />
+      <AlertModal
+        visible={deleteSpecieAlert}
+        heading={i18next.t('label.delete_species')}
+        message={i18next.t('label.zero_tree_count_species_delete_sample_tree_warning')}
+        showSecondaryButton={true}
+        primaryBtnText={i18next.t('label.tree_review_delete')}
+        secondaryBtnText={i18next.t('label.cancel')}
+        onPressPrimaryBtn={() => handleZeroSpeciesDelete()}
+        onPressSecondaryBtn={() => setDeleteSpecieAlert(false)}
       />
     </SafeAreaView>
   );
@@ -291,12 +374,10 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    // borderWidth: 1,
     height: 48,
     borderRadius: 5,
     marginTop: 24,
     backgroundColor: Colors.WHITE,
-    // borderColor: '#00000024',
     shadowColor: '#00000024',
     shadowOffset: {
       width: 0,

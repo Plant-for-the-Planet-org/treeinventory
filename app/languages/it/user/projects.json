@@ -1,3 +1,8 @@
 {
-  "select_project": "Seleziona Progetto"
+  "add_new_project": "Aggiungere un nuovo progetto",
+  "add_new_project_desc": "Aggiungi progetti per mostrare i tuoi progressi passati o per ricevere donazioni per piantarne altri.",
+  "select_project": "Seleziona Progetto",
+  "select_project_desc": "Gli alberi registrati possono essere associati a un progetto specifico.",
+  "continue_without_project": "Continuare senza un progetto",
+  "continue_without_project_desc": "Gli alberi non saranno associati a un progetto."
 }

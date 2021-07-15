@@ -10,6 +10,7 @@
   "inventory_overview_export_json_message": "Choose target for export",
   "inventory_overview_export_json_title": "GeoJSON export",
   "inventory_overview_add_species": "Planted Species",
+  "inventory_overview_add_sample_tree": "Sample Trees",
   "inventory_overview_header_text": "Review",
   "inventory_overview_sub_header": "Trees will be added to your inventory to sync when you have internet.",
   "inventory_overview_left_text": "Plant Date",

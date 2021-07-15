@@ -3,8 +3,8 @@
   "tree_mapper": "Cartographe d'arbres",
   "tree_inventory": "Inventaire forestier",
   "tree_inventory_sub_header": "Inscriptions en projet et en attente",
+  "download_maps": "Télécharger les cartes",
   "download_maps_sub_header": "pour une utilisation hors ligne",
-  "learn": "Apprendre",
-  "learn_sub_header": "comment utiliser Tree Mapper",
-  "register_tree": "Enregistrer l'arbre"
+  "register_tree": "Enregistrer l'arbre",
+  "loading_content": "Chargement du contenu..."
 }

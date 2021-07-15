@@ -1,6 +1,7 @@
 {
   "tree_inventory_loading_modal": "Téléchargement ...",
   "tree_inventory_left_text": "En attente de téléchargement",
+  "tree_inventory_left_text_uploading": "Téléchargement en cours",
   "tree_inventory_right_text": "Télécharger maintenant",
   "tree_inventory_view_upload": "Afficher tous les éléments téléchargés",
   "tree_inventory_incomplete_registrations": "Inscriptions incomplètes",

@@ -8,8 +8,6 @@
   "tree_review_location": "EMPLACEMENT",
   "tree_review_specie": "ESPÈCE",
   "tree_review_unable": "Impossible d'identifier",
-  "tree_review_diameter_header": "DIAMÈTRE",
-  "tree_review_height_header": "HAUTEUR",
   "tree_review_tree_tag_header": "ÉTIQUETTE D'ARBRE ",
   "tree_review_specie_text": "{{specieText}}",
   "tree_review_specie_diameter": "{{specieDiameter}}cm",
@@ -25,5 +23,14 @@
   "tree_review_delete_not_yet_uploaded_registration": "L'enregistrement n'est pas encore téléchargé sur Plant-for-the-Planet. Une fois supprimé, il sera perdu à jamais.",
   "tree_review_delete_uploaded_registration": "Cet enregistrement est sécurisé sur le cloud. Une fois cet enregistrement supprimé, il n'est actuellement pas possible de le récupérer sur cette application",
   "tree_review_continue_to_species": "Continuer vers les espèces",
-  "tree_review_continue_to_review": "Poursuivre la révision"
+  "tree_review_continue_to_review": "Poursuivre la révision",
+  "tree_review_continue_to_sampleTrees": "Continuer à échantillonner les arbres",
+  "tree_review_continue_to_additional_data": "Continuer vers des données supplémentaires",
+  "skip": "Skip &amp; Save",
+  "add_more_sample_trees": "Ajouter d'autres arbres échantillons",
+  "recommend_at_least_one_sample": "Certaines des espèces plantées ne sont pas échantillonnées. Nous vous recommandons d'échantillonner au moins un arbre pour chaque espèce plantée.",
+  "no_species_found": "Aucune espèce trouvée",
+  "at_least_one_species": "Vous devez avoir au moins 1 espèce avant d'ajouter des arbres échantillons",
+  "need_more_sample_trees": "Besoin de plus d'arbres échantillons",
+  "at_least_five_sample_trees": "Vous devez ajouter au moins 5 arbres échantillons"
 }

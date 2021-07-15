@@ -10,6 +10,7 @@
   "inventory_overview_export_json_message": "Elegir el destino de la exportación",
   "inventory_overview_export_json_title": "Exportar GeoJson",
   "inventory_overview_add_species": "Especies plantadas",
+  "inventory_overview_add_sample_tree": "Árbol de muestra",
   "inventory_overview_header_text": "Revisar",
   "inventory_overview_sub_header": "Los árboles se añadirán a tu inventario para sincronizarlos cuando tengas acceso a Internet.",
   "inventory_overview_left_text": "Fecha de plantación",
@@ -22,5 +23,6 @@
   "inventory_overview_date": "{{date, ll}}",
   "inventory_overview_cancel": "Cancelar",
   "inventory_overview_confirm": "Confirmar",
-  "inventory_overview_pick_a_date": "Selecciona una fecha"
+  "inventory_overview_pick_a_date": "Selecciona una fecha",
+  "error_saving_inventory": "Error al guardar el inventario"
 }

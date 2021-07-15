@@ -66,6 +66,7 @@ export const getSpeciesList = () => {
           logType: LogTypes.MANAGE_SPECIES,
           message: 'Failed fetch of species list, GET - /species',
           statusCode: err?.response?.status,
+          logStack: JSON.stringify(err?.response),
         });
         bugsnag.notify(err);
         reject(err);
@@ -215,13 +216,20 @@ export const UpdateSpeciesImage = (image, speciesId, SpecieGuid) => {
         }
       })
       .catch((err) => {
+        // logs the error of the failed request in DB
+        dbLog.error({
+          logType: LogTypes.MANAGE_SPECIES,
+          message: `Failed to update specie Image with specie id ${speciesId}, PUT - /treemapper/species/${speciesId}`,
+          statusCode: err?.response?.status,
+          logStack: JSON.stringify(err?.response),
+        });
         reject(err);
       });
   });
 };
 
 export const getBase64ImageFromURL = async (specieImage) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     if (cdnUrl) {
       RNFS.downloadFile({
         fromUrl: `${protocol}://${cdnUrl}/media/cache/species/default/${specieImage}`,
@@ -232,11 +240,19 @@ export const getBase64ImageFromURL = async (specieImage) => {
             .then((data) => {
               resolve(data);
               RNFS.unlink(`${RNFS.DocumentDirectoryPath}/${specieImage}`).catch((err) => {
+                reject(err);
                 // `unlink` will throw an error, if the item to unlink does not exist
                 console.error(err.message);
               });
             })
-            .catch((err) => console.error('Error while reading file image'));
+            .catch((err) => {
+              dbLog.error({
+                logType: LogTypes.MANAGE_SPECIES,
+                message: 'Error while reading file image',
+                logStack: JSON.stringify(err),
+              });
+              reject(err);
+            });
         } else {
           resolve();
         }

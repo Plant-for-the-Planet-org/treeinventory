@@ -7,7 +7,7 @@ interface IIconSwitcherProps {
   size: number;
   color: string;
   style?: any;
-  iconType: string;
+  iconType: 'MCIIcon' | 'FA5Icon';
 }
 
 const IconSwitcher = ({ name, size, color, style = {}, iconType }: IIconSwitcherProps) => {

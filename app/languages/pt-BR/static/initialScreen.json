@@ -6,5 +6,6 @@
   "downloading_archive": "Fazendo download do arquivo de espécies",
   "unzipping_archive": "Extraindo o arquivo de espécies",
   "fetch_and_add_species_to_database": "Obtendo e adicionando espécies à base de dados.",
-  "species_data_loaded": "Dados das espécies carregados."
+  "species_data_loaded": "Dados das espécies carregados.",
+  "please_wait": "Por favor, espere..."
 }

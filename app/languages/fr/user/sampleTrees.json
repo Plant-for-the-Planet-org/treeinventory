@@ -4,5 +4,8 @@
   "trees": "Arbres",
   "next_step_to_measure_sample_trees_text": "Dans les étapes suivantes, il vous sera demandé de mesurer des échantillons d'arbres pour le site de plantation.",
   "recommend_at_least_sample_trees": "Nous recommandons de prélever au moins de 5 à 10 échantillons d'arbres au hasard.",
-  "how_many_sample_trees_to_record": "Combien d'arbres souhaitez-vous enregistrer?"
+  "how_many_sample_trees_to_record": "Combien d'arbres souhaitez-vous enregistrer?",
+  "invalid_tree_count": "Nombre d'arbres invalide",
+  "enter_valid_tree_count": "Vous devez échantillonner au moins 5 arbres.",
+  "add_another": "Ajouter un autre"
 }

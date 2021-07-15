@@ -24,5 +24,6 @@
   "total_trees_header": "Bäume gesamt",
   "add_all_trees_planted_on_site": "Bitte füge die Liste aller gepflanzten Bäume an diesem Standort hinzu.",
   "select_species_and_add_sample": "Wähle eine der unteren Arten aus und füge einen Beispielbaum für diese Art hinzu.",
-  "add_sample_tree": "Beispielbaum hinzufügen"
+  "add_sample_tree": "Beispielbaum hinzufügen",
+  "select_species": "Arten auswählen"
 }

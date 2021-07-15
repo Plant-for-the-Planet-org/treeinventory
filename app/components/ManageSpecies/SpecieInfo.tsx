@@ -18,18 +18,18 @@ import FAIcon from 'react-native-vector-icons/FontAwesome';
 import FA5Icon from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography } from '../../styles';
 import { clearSpecie, updateUserSpecie } from '../../actions/species';
 import { SpeciesContext } from '../../reducers/species';
 import { toggleUserSpecies } from '../../repositories/species';
 import { getUserToken } from '../../repositories/user';
 import { Camera, Header } from '../Common';
-import { updateSpecieData } from './../../repositories/species';
+import { updateSpecieData } from '../../repositories/species';
 import InputModal from '../Common/InputModal';
 
 let screen;
 
-const SpecieInfo = ({ route }) => {
+const SpecieInfo = ({ route }: { route: any }) => {
   const [isCamera, setIsCamera] = useState(false);
   const [aliases, setAliases] = useState('');
   const [image, setImage] = useState('');
@@ -40,7 +40,7 @@ const SpecieInfo = ({ route }) => {
   const [specieId, setSpecieId] = useState('');
   const [inputValue, setInputValue] = useState('');
   const [editEnable, setEditEnable] = useState('');
-  const { state: specieState, dispatch } = useContext(SpeciesContext);
+  const { state: specieState, dispatch } = useContext<any>(SpeciesContext);
 
   const netInfo = useNetInfo();
   const isFocused = useIsFocused();
@@ -48,7 +48,7 @@ const SpecieInfo = ({ route }) => {
   useEffect(() => {
     screen = route.params.screen;
     if (specieState.specie) {
-      const { specie } = specieState;
+      const { specie }: { specie: any } = specieState;
       setAliases(specie.aliases);
       setDescription(specie.description);
       setImage(specie.image);
@@ -67,14 +67,15 @@ const SpecieInfo = ({ route }) => {
   }, [isFocused]);
 
   const onSubmitInputField = () => {
-    editEnable === 'aliases'
-      ? setAliases(inputValue)
-      : editEnable === 'description'
-        ? setDescription(inputValue)
-        : [];
-    const isImageChanged = image ? specieState.specie.image !== image : true;
+    if (editEnable === 'aliases') {
+      setAliases(inputValue);
+    } else if (editEnable === 'description') {
+      setDescription(inputValue);
+    }
+    const isImageChanged = image ? specieState?.specie?.image !== image : true;
     const isDescriptionChanged = specieState.specie.description !== description;
     const isAliasesChanged = specieState.specie.aliases !== aliases;
+
     const shouldUpdateData = isImageChanged || isDescriptionChanged || isAliasesChanged;
     if (shouldUpdateData) {
       updateSpecieData({
@@ -101,7 +102,7 @@ const SpecieInfo = ({ route }) => {
     }
   };
 
-  const handleCamera = ({ base64Image }) => {
+  const handleCamera = ({ base64Image }: { base64Image: any }) => {
     setIsCamera(!isCamera);
     setImage(`data:image/jpeg;base64,${base64Image}`);
   };

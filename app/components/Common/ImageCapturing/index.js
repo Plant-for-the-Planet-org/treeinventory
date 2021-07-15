@@ -108,6 +108,11 @@ const ImageCapturing = ({
     }
     const data = await camera.current.takePictureAsync().catch((err) => {
       alert(i18next.t('label.permission_camera_message'));
+      dbLog.error({
+        logType: LogTypes.OTHER,
+        message: `Failed to take picture ${err}`,
+        logStack: JSON.stringify(err),
+      });
       setImagePath('');
       return;
     });
@@ -163,11 +168,20 @@ const ImageCapturing = ({
                   inventory.completedSampleTreesCount + 1
                 } inventory_id: ${inventory.inventory_id}`,
               });
-              updateLastScreen({
-                inventory_id: inventory.inventory_id,
-                lastScreen: 'SelectSpecies',
-              });
-              navigation.navigate('SelectSpecies');
+
+              if (inventory.sampleTrees[inventory.completedSampleTreesCount]?.specieId) {
+                updateLastScreen({
+                  inventory_id: inventory.inventory_id,
+                  lastScreen: 'SelectSpecies',
+                });
+                navigation.navigate('SelectSpecies');
+              } else {
+                updateLastScreen({
+                  inventory_id: inventory.inventory_id,
+                  lastScreen: 'SpecieSampleTree',
+                });
+                navigation.navigate('SpecieSampleTree');
+              }
             })
             .catch((err) => {
               dbLog.error({

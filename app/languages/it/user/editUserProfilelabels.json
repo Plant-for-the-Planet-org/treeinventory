@@ -1,6 +1,22 @@
 {
+  "edit_profile": "Modifica il profilo",
+  "logout": "Logout",
+  "logout_anyway": "Disconnettersi comunque",
+  "privacy_policy": "Politica sulla privacy",
+  "terms_of_service": "Condizioni di servizio",
   "imprint": "Impronta",
+  "legal_docs": "Documenti legali",
   "open_source_license": "Licenza Open Source",
+  "edit": "Modifica",
+  "manage_offline": "Gestire le mappe offline",
+  "manage_species": "Gestire le specie",
+  "activity_logging": "Registrazione delle attività",
+  "activity_logs": "Registri di attività",
+  "all_backed_up": "Tutte le modifiche hanno fatto il backup",
+  "upload_pending": "{{count}} in attesa",
+  "sync_remaining": "Sincronizzazione - {{count}} rimanente",
+  "support": "Supporto",
   "complete_signup": "Completa l'iscrizione",
-  "manage_projects": "Gestire progetti"
+  "manage_projects": "Gestire progetti",
+  "additional_data": "Dati aggiuntivi"
 }

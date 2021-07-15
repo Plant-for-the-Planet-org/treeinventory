@@ -1,3 +1,10 @@
 {
-  "register_tree": "Registra alberi"
+  "login": "Accedi / Iscriviti",
+  "tree_mapper": "Mappatore di alberi",
+  "tree_inventory": "Inventario degli alberi",
+  "tree_inventory_sub_header": "di progetti e registrazioni in sospeso",
+  "download_maps": "Scarica le mappe",
+  "download_maps_sub_header": "per uso offline",
+  "register_tree": "Registra alberi",
+  "loading_content": "Caricamento del contenuto..."
 }

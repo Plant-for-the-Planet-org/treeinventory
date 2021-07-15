@@ -1,5 +1,5 @@
 import MapboxGL from '@react-native-mapbox-gl/maps';
-import { useNavigation } from '@react-navigation/core';
+import { useNavigation, useRoute } from '@react-navigation/core';
 import bbox from '@turf/bbox';
 import turfCenter from '@turf/center';
 import i18next from 'i18next';
@@ -24,7 +24,8 @@ import { getScientificSpeciesById } from '../../repositories/species';
 import { LogTypes } from '../../utils/constants';
 import getGeoJsonData from '../../utils/convertInventoryToGeoJson';
 import { MULTI, OFF_SITE } from '../../utils/inventoryConstants';
-import { Header, PrimaryButton, TopRightBackground } from '../Common';
+import { AlertModal, Header, PrimaryButton, TopRightBackground } from '../Common';
+import TreeCountModal from '../Common/TreeCountModal';
 import SampleTreeMarkers from '../Common/SampleTreeMarkers';
 import ManageSpecies from '../ManageSpecies';
 
@@ -34,11 +35,21 @@ export default function TotalTreesSpecies() {
   const [bounds, setBounds] = useState([]);
   const [isCameraRefVisible, setIsCameraRefVisible] = useState(false);
   const [centerCoordinate, setCenterCoordinate] = useState([]);
+  const [showTreeCountModal, setShowTreeCountModal] = useState(false);
+  const [treeCount, setTreeCount] = useState('');
+  const [specie, setSpecie] = useState();
+  const [specieIndex, setSpecieIndex] = useState();
+  const [deleteSpecieAlert, setDeleteSpecieAlert] = useState(false);
+  const [deleteSpeciesAlertDescription, setDeleteSpeciesAlertDescription] = useState(
+    i18next.t('label.delete_species_delete_sample_tree_warning'),
+  );
 
   const navigation = useNavigation();
 
   // reference for camera to focus on map
   const camera = useRef(null);
+
+  const route = useRoute();
 
   // reference for map
   const map = useRef(null);
@@ -65,11 +76,13 @@ export default function TotalTreesSpecies() {
   const { state: inventoryState } = useContext(InventoryContext);
 
   useEffect(() => {
-    let data = {
-      inventory_id: inventoryState.inventoryID,
-      lastScreen: 'TotalTreesSpecies',
-    };
-    updateLastScreen(data);
+    if (!route?.params?.redirectToOverview) {
+      let data = {
+        inventory_id: inventoryState.inventoryID,
+        lastScreen: 'TotalTreesSpecies',
+      };
+      updateLastScreen(data);
+    }
     initializeState();
   }, []);
 
@@ -119,11 +132,180 @@ export default function TotalTreesSpecies() {
         }
       });
     }
+    setDeleteSpecieAlert(false);
+    setShowTreeCountModal(false);
+    setDeleteSpeciesAlertDescription(i18next.t('label.delete_species_delete_sample_tree_warning'));
+  };
+
+  const onPressDelete = (deleteSpecieIndex) => {
+    setSpecieIndex(deleteSpecieIndex);
+    let species = [...inventory.species];
+    let sampleTrees = [...inventory.sampleTrees];
+    const deleteSpecies = species[deleteSpecieIndex];
+    sampleTrees.every((sampleTree, index) => {
+      if (sampleTree.specieId === deleteSpecies.id) {
+        setDeleteSpecieAlert(true);
+        return false;
+      } else if (index === sampleTrees.length - 1) {
+        deleteSpecie(deleteSpecieIndex);
+      } else {
+        return true;
+      }
+    });
+  };
+
+  const deleteSpeciesAndSampleTrees = async (deleteSpeciesIndex) => {
+    let species = [...inventory.species];
+    let sampleTrees = [...inventory.sampleTrees];
+    const deleteSpecies = species[deleteSpeciesIndex];
+
+    // loops through sample trees and deletes all the sample trees which includes the species to be deleted
+    for await (let sampleTree of [...inventory.sampleTrees]) {
+      if (sampleTree.specieId === deleteSpecies.id) {
+        sampleTrees.splice(sampleTrees.indexOf(sampleTree), 1);
+      }
+    }
+
+    // deletes the species selected by the user
+    const updatedSpecies = species.splice(deleteSpeciesIndex, 1);
+
+    updateInventory({
+      inventory_id: inventory.inventory_id,
+      inventoryData: {
+        species,
+        sampleTrees,
+        sampleTreesCount: sampleTrees.length < 5 ? Number(5) : sampleTrees.length,
+        completedSampleTreesCount: sampleTrees.length,
+      },
+    })
+      .then(() => {
+        initializeState();
+
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Successfully deleted species and sampleTrees with id: ${updatedSpecies[0].id} for inventory with inventory_id: ${inventory.inventory_id}`,
+        });
+      })
+      .catch((err) =>
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Failed to delete species and sampleTrees with id: ${updatedSpecies[0].id} for inventory with inventory_id: ${inventory.inventory_id}`,
+          logStack: JSON.stringify(err),
+        }),
+      );
   };
 
   const deleteSpecie = (index) => {
     let species = [...inventory.species];
-    const specie = species.splice(index, 1);
+    const updatedSpecies = species.splice(index, 1);
+
+    updateInventory({
+      inventory_id: inventory.inventory_id,
+      inventoryData: {
+        species,
+      },
+    })
+      .then(() => {
+        initializeState();
+
+        dbLog.info({
+          logType: LogTypes.INVENTORY,
+          message: `Successfully deleted specie with id: ${updatedSpecies[0].id} multiple tree having inventory_id: ${inventory.inventory_id}`,
+        });
+      })
+      .catch((err) =>
+        dbLog.error({
+          logType: LogTypes.INVENTORY,
+          message: `Failed to delete specie with id: ${updatedSpecies[0].id} multiple tree having inventory_id: ${inventory.inventory_id}`,
+          logStack: JSON.stringify(err),
+        }),
+      );
+  };
+
+  const changeTreeCount = async () => {
+    let species = [...inventory.species];
+    if ((!treeCount || Number(treeCount) === 0) && inventory.sampleTrees.length > 0) {
+      setSpecieIndex(specieIndex);
+      let species = [...inventory.species];
+      let sampleTrees = [...inventory.sampleTrees];
+      const deleteSpecies = species[specieIndex];
+
+      sampleTrees.every((sampleTree, index) => {
+        if (sampleTree.specieId === deleteSpecies.id) {
+          setDeleteSpecieAlert(true);
+          setDeleteSpeciesAlertDescription(
+            i18next.t('label.zero_tree_count_species_delete_sample_tree_warning'),
+          );
+          return false;
+        } else if (index === sampleTrees.length - 1) {
+          deleteSpecie(specieIndex);
+        } else {
+          return true;
+        }
+      });
+    } else {
+      if (!treeCount || Number(treeCount) === 0) {
+        species.splice(specieIndex, 1);
+      } else {
+        species[specieIndex].treeCount = Number(treeCount);
+      }
+
+      await updateInventory({
+        inventory_id: inventoryState.inventoryID,
+        inventoryData: {
+          species,
+        },
+      })
+        .then(() => {
+          setShowTreeCountModal(false);
+          getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
+            setInventory(inventoryData);
+          });
+          dbLog.info({
+            logType: LogTypes.INVENTORY,
+            message: `Successfully changed tree count for specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
+          });
+        })
+        .catch((err) => {
+          dbLog.error({
+            logType: LogTypes.INVENTORY,
+            message: `Failed to change tree count for specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
+            logStack: JSON.stringify(err),
+          });
+        });
+    }
+  };
+
+  const addSpecieToInventory = (stringifiedSpecie) => {
+    let specie = JSON.parse(stringifiedSpecie);
+
+    let species = [...inventory.species];
+
+    let deleteSpecieIndex;
+    let updateSpecieIndex;
+    for (const index in species) {
+      if (species[index].id === specie.guid && specie.treeCount === 0) {
+        deleteSpecieIndex = index;
+        break;
+      } else if (species[index].id === specie.guid && specie.treeCount > 0) {
+        updateSpecieIndex = index;
+      }
+    }
+
+    if (deleteSpecieIndex) {
+      species.splice(deleteSpecieIndex, 1);
+    } else if (updateSpecieIndex) {
+      species[updateSpecieIndex].treeCount = specie.treeCount;
+    } else if (specie.treeCount > 0) {
+      species = [
+        ...species,
+        {
+          aliases: specie.aliases ? specie.aliases : specie.scientificName,
+          id: specie.guid,
+          treeCount: specie.treeCount,
+        },
+      ];
+    }
 
     updateInventory({
       inventory_id: inventory.inventory_id,
@@ -137,75 +319,20 @@ export default function TotalTreesSpecies() {
         });
         dbLog.info({
           logType: LogTypes.INVENTORY,
-          message: `Successfully deleted specie with id: ${specie[0].id} multiple tree having inventory_id: ${inventory.inventory_id}`,
+          message: `Successfully added specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
         });
       })
       .catch((err) => {
         dbLog.error({
           logType: LogTypes.INVENTORY,
-          message: `Failed to delete specie with id: ${specie[0].id} multiple tree having inventory_id: ${inventory.inventory_id}`,
+          message: `Failed to add specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
           logStack: JSON.stringify(err),
         });
+        console.error(
+          `Failed to add specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
+          err,
+        );
       });
-  };
-
-  const addSpecieToInventory = (specie) => {
-    if (specie.treeCount > 0) {
-      let species = [...inventory.species];
-
-      let deleteSpecieIndex;
-      let updateSpecieIndex;
-      for (const index in species) {
-        if (species[index].id === specie.guid && specie.treeCount === 0) {
-          deleteSpecieIndex = index;
-          break;
-        } else if (species[index].id === specie.guid && specie.treeCount > 0) {
-          updateSpecieIndex = index;
-        }
-      }
-
-      if (deleteSpecieIndex) {
-        species.splice(deleteSpecieIndex, 1);
-      } else if (updateSpecieIndex) {
-        species[updateSpecieIndex].treeCount = specie.treeCount;
-      } else {
-        species = [
-          ...species,
-          {
-            aliases: specie.aliases ? specie.aliases : specie.scientificName,
-            id: specie.guid,
-            treeCount: specie.treeCount,
-          },
-        ];
-      }
-
-      updateInventory({
-        inventory_id: inventory.inventory_id,
-        inventoryData: {
-          species,
-        },
-      })
-        .then(() => {
-          getInventory({ inventoryID: inventoryState.inventoryID }).then((inventoryData) => {
-            setInventory(inventoryData);
-          });
-          dbLog.info({
-            logType: LogTypes.INVENTORY,
-            message: `Successfully added specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
-          });
-        })
-        .catch((err) => {
-          dbLog.error({
-            logType: LogTypes.INVENTORY,
-            message: `Failed to add specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
-            logStack: JSON.stringify(err),
-          });
-          console.error(
-            `Failed to add specie with id: ${specie.guid} multiple tree having inventory_id: ${inventory.inventory_id}`,
-            err,
-          );
-        });
-    }
   };
 
   const renderMapView = () => {
@@ -236,12 +363,11 @@ export default function TotalTreesSpecies() {
   };
 
   const handleContinuePress = () => {
-    if (
-      inventory?.sampleTreesCount === inventory?.completedSampleTreesCount ||
-      inventory?.locateTree === OFF_SITE
-    ) {
+    if (inventory?.completedSampleTreesCount > 0 || inventory?.locateTree === OFF_SITE) {
       navigation.navigate(
-        inventory?.additionalDetails.length > 0 ? 'InventoryOverview' : 'AdditionalDataForm',
+        inventory?.additionalDetails.length > 0 || route?.params?.redirectToOverview
+          ? 'InventoryOverview'
+          : 'AdditionalDataForm',
       );
     } else {
       navigation.navigate('SampleTreesCount');
@@ -249,11 +375,8 @@ export default function TotalTreesSpecies() {
   };
 
   const getContinueButtonText = () => {
-    if (
-      inventory?.sampleTreesCount === inventory?.completedSampleTreesCount ||
-      inventory?.locateTree === OFF_SITE
-    ) {
-      if (inventory?.additionalDetails.length > 0) {
+    if (inventory?.completedSampleTreesCount > 0 || inventory?.locateTree === OFF_SITE) {
+      if (inventory?.additionalDetails.length > 0 || route?.params?.redirectToOverview) {
         return i18next.t('label.tree_review_continue_to_review');
       } else {
         return i18next.t('label.tree_review_continue_to_additional_data');
@@ -265,13 +388,29 @@ export default function TotalTreesSpecies() {
 
   if (showManageSpecies) {
     return (
-      <ManageSpecies
-        onPressBack={() => setShowManageSpecies(false)}
-        registrationType={MULTI}
-        addSpecieToInventory={addSpecieToInventory}
-        isSampleTree={true}
-        isSampleTreeCompleted={true}
-      />
+      <>
+        <ManageSpecies
+          onPressBack={() => setShowManageSpecies(false)}
+          registrationType={MULTI}
+          addSpecieToInventory={addSpecieToInventory}
+          isSampleTree={true}
+          screen={'SelectSpecies'}
+          isSampleTreeCompleted={true}
+          retainNavigationStack={route?.params?.retainNavigationStack}
+          deleteSpeciesAndSampleTrees={deleteSpeciesAndSampleTrees}
+          deleteSpecie={deleteSpecie}
+        />
+        <AlertModal
+          visible={deleteSpecieAlert}
+          heading={i18next.t('label.delete_species')}
+          message={deleteSpeciesAlertDescription}
+          showSecondaryButton={true}
+          primaryBtnText={i18next.t('label.tree_review_delete')}
+          secondaryBtnText={i18next.t('label.cancel')}
+          onPressPrimaryBtn={() => deleteSpeciesAndSampleTrees(specieIndex)}
+          onPressSecondaryBtn={() => setDeleteSpecieAlert(false)}
+        />
+      </>
     );
   }
 
@@ -291,13 +430,26 @@ export default function TotalTreesSpecies() {
             </Text>
           </View>
           {inventory && Array.isArray(inventory.species) && inventory.species.length > 0
-            ? inventory.species.map((specie, index) => (
-              <SpecieListItem
-                item={specie}
-                index={index}
-                key={index}
-                deleteSpecie={deleteSpecie}
-              />
+            ? inventory.species.map((plantedSpecie, index) => (
+              <TouchableOpacity
+                onPress={() => {
+                  setSpecie(plantedSpecie);
+                  setSpecieIndex(index);
+                  setShowTreeCountModal(true);
+                }}
+                key={index}>
+                <SpecieListItem
+                  item={plantedSpecie}
+                  index={index}
+                  key={`${plantedSpecie.id}`}
+                  deleteSpecie={() =>
+                    inventory.completedSampleTreesCount > 0
+                      ? onPressDelete(index)
+                      : deleteSpecie(index)
+                  }
+                  setSpecieIndex={setSpecieIndex}
+                />
+              </TouchableOpacity>
             ))
             : renderMapView()}
         </ScrollView>
@@ -309,14 +461,43 @@ export default function TotalTreesSpecies() {
             testID={'sample_tree_count_continue'}
             accessibilityLabel={'sample_tree_count_continue'}
           />
-          <PrimaryButton
-            onPress={handleContinuePress}
-            btnText={getContinueButtonText()}
-            theme={'primary'}
-            testID={'sample_tree_count_continue'}
-            accessibilityLabel={'sample_tree_count_continue'}
-          />
+          {inventory?.species?.length > 0 ? (
+            <PrimaryButton
+              onPress={handleContinuePress}
+              btnText={getContinueButtonText()}
+              theme={'white'}
+              testID={'sample_tree_count_continue'}
+              accessibilityLabel={'sample_tree_count_continue'}
+            />
+          ) : (
+            []
+          )}
         </View>
+        <TreeCountModal
+          showTreeCountModal={showTreeCountModal}
+          setShowTreeCountModal={setShowTreeCountModal}
+          treeCount={treeCount}
+          setTreeCount={setTreeCount}
+          activeSpecie={specie}
+          onPressTreeCountNextBtn={changeTreeCount}
+        />
+        <AlertModal
+          visible={deleteSpecieAlert}
+          heading={i18next.t('label.delete_species')}
+          message={deleteSpeciesAlertDescription}
+          showSecondaryButton={true}
+          primaryBtnText={i18next.t('label.tree_review_delete')}
+          secondaryBtnText={i18next.t('label.cancel')}
+          onPressPrimaryBtn={() => {
+            deleteSpeciesAndSampleTrees(specieIndex);
+          }}
+          onPressSecondaryBtn={() => {
+            setDeleteSpecieAlert(false);
+            setDeleteSpeciesAlertDescription(
+              i18next.t('label.delete_species_delete_sample_tree_warning'),
+            );
+          }}
+        />
       </View>
     </SafeAreaView>
   );
@@ -326,11 +507,11 @@ export const SpecieListItem = ({ item, index, deleteSpecie }) => {
   const [specieImage, setSpecieImage] = useState();
   const [species, setSpecies] = useState();
   useEffect(() => {
-    getScientificSpeciesById(item?.id ? item?.id : item?.guid).then((specie) => {
+    getScientificSpeciesById(item?.id || item?.guid).then((specie) => {
       setSpecies(specie);
       setSpecieImage(specie.image);
     });
-  }, []);
+  }, [item]);
   return (
     <View
       key={index}
@@ -371,7 +552,9 @@ export const SpecieListItem = ({ item, index, deleteSpecie }) => {
             color: Colors.TEXT_COLOR,
             fontStyle: 'italic',
           }}>
-          {species?.guid === 'unknown' || species?.id === 'unknown' ? 'Unknown' : item?.aliases}
+          {species?.guid === 'unknown' || species?.id === 'unknown'
+            ? i18next.t('label.select_species_unknown')
+            : item?.aliases}
         </Text>
         <Text
           style={{
@@ -384,8 +567,11 @@ export const SpecieListItem = ({ item, index, deleteSpecie }) => {
           {item?.treeCount > 1 ? i18next.t('label.trees') : i18next.t('label.tree')}
         </Text>
       </View>
-      {species?.guid !== 'unknown' && deleteSpecie ? (
-        <TouchableOpacity onPress={() => deleteSpecie(index)}>
+      {deleteSpecie ? (
+        <TouchableOpacity
+          onPress={() => {
+            deleteSpecie(index);
+          }}>
           <FAIcon name="minus-circle" size={20} color="#e74c3c" />
         </TouchableOpacity>
       ) : (

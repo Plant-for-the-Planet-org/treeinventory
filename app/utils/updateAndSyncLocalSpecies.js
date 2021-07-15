@@ -215,6 +215,7 @@ export default async function updateAndSyncLocalSpecies(setUpdatingSpeciesState)
 const unzipAndAddSpeciesData = (zipFilePath, jsonFilePath, setUpdatingSpeciesState) => {
   return new Promise((resolve, reject) => {
     setUpdatingSpeciesState('UNZIPPING_FILE');
+
     // unzips the downloaded file in document directory
     unzip(zipFilePath, DocumentDirectoryPath, 'UTF-8')
       .then(async () => {
@@ -270,9 +271,12 @@ const downloadAndUpdateSpecies = (zipFilePath, jsonFilePath, setUpdatingSpeciesS
   return new Promise((resolve, reject) => {
     // downloads the zip file from the link and then after completion unzip the file
     // and updates th species in local DB
+
     RNFS.downloadFile({
       fromUrl: `${protocol}://${url}/treemapper/scientificSpeciesArchive`,
       toFile: zipFilePath,
+      readTimeout: 300 * 1000, // allow max 5 minutes for downloading
+      background: false,
       begin: () => {
         setUpdatingSpeciesState('DOWNLOADING');
       },
@@ -291,6 +295,15 @@ const downloadAndUpdateSpecies = (zipFilePath, jsonFilePath, setUpdatingSpeciesS
           unzipAndAddSpeciesData(zipFilePath, jsonFilePath, setUpdatingSpeciesState)
             .then(resolve)
             .catch(reject);
+        } else {
+          dbLog.error({
+            logType: LogTypes.MANAGE_SPECIES,
+            message:
+              'Error while downloading scientific species zip, GET - /scientificSpeciesArchive',
+            statusCode: response.statusCode,
+            logStack: JSON.stringify(response),
+          });
+          reject(new Error('Error while downloading scientific species zip'));
         }
       })
       .catch((err) => {

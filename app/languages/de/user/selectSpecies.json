@@ -13,6 +13,8 @@
   "select_species_card": "Artenkarte",
   "select_species_add_measurements": "Messung hinzufügen",
   "select_species_diameter": "Durchmesser",
+  "measurement_basal_diameter": "Basal-Durchmesser",
+  "measurement_DBH": "Durchmesser in Brusthöhe (DBH)",
   "select_species_height": "Höhe",
   "select_species_tree_tag": "Baum-Tag",
   "select_species_inches": "Zoll",
@@ -51,5 +53,12 @@
   "sync": "Sync",
   "species_sync_might_take_time": "Synchronisiere Arten - dies kann einige Zeit dauern.",
   "all_species_synced": "Alle Arten wurden synchronisiert.",
-  "sync_required_message": "Deine Arten wurden nicht vollständig synchronisiert!\n\nDurch das Abmelden werden diese Arten entfernt, also synchronisiere sie bitte zuerst."
+  "sync_required_message": "Deine Arten wurden nicht vollständig synchronisiert!\n\nDurch das Abmelden werden diese Arten entfernt, also synchronisiere sie bitte zuerst.",
+  "measurement_diameter_info": "Wenn ein Baum über {{height}} {{unit}} hoch ist, miss bitte den Stammdurchmesser bei {{height}} {{unit}} (DBH). Ansonsten miss bitte den Stammdurchmesser an der Basis des Baumes (Basaldurchmesser)",
+  "check_again": "Erneut prüfen",
+  "not_optimal_ratio": "Nicht optimales Verhältnis",
+  "not_optimal_ratio_message": "Das Verhältnis von Höhe zu Durchmesser fällt nicht in den optimalen Verhältnisbereich, der zwischen 2:1 (minimale Höhe:Durchmesser) und 160:1 (maximale Höhe:Durchmesser) liegt. Bist du sicher, dass du fortfahren möchtest?",
+  "delete_species": "Spezies löschen?",
+  "delete_species_delete_sample_tree_warning": "Wenn du diese Art löscht, werden auch die mit dieser Art verbundenen Beispielbäume gelöscht. Bist du sicher, dass du sie löschen möchtest?",
+  "zero_tree_count_species_delete_sample_tree_warning": "Diese Art wird gelöscht, wenn die Baumanzahl auf 0 gesetzt wird, unddie mit dieser Art verbundenen Beispielbäume werden ebenfalls gelöscht. Bist du sicher, dass du die Baumanzahl auf Null setzen willst?"
 }

@@ -7,6 +7,8 @@ import AsyncStorage from '@react-native-community/async-storage';
 import Snackbar from 'react-native-snackbar';
 import { Colors, Typography } from '_styles';
 import i18next from 'i18next';
+import dbLog from '../../../repositories/logs';
+import { LogTypes } from '../../../utils/constants';
 import { NavigationContext } from '../../../reducers/navigation';
 import { showInitialNavigationStack } from '../../../actions/navigation';
 import { useNetInfo } from '@react-native-community/netinfo';
@@ -38,8 +40,13 @@ const SpeciesSyncError = () => {
         const species = await AsyncStorage.getItem('isLocalSpeciesUpdated');
         setAsyncStorageSpecies(species);
       })
-      .catch(() => {
+      .catch((err) => {
         setRefreshAnimation(false);
+        dbLog.error({
+          logType: LogTypes.OTHER,
+          message: 'Failed to sync species that are not downloaded already',
+          logStack: JSON.stringify(err),
+        });
         Snackbar.show({
           text: i18next.t('label.something_went_wrong'),
           duration: Snackbar.LENGTH_SHORT,

@@ -17,7 +17,6 @@ import InventoryList from './InventoryList';
 import SpeciesSyncError from './SpeciesSyncError';
 import Camera from './Camera';
 import TopRightBackground from './TopRightBackground';
-import TreeCountModal from './TreeCountModal';
 import InputModal from './InputModal';
 export {
   Header,
@@ -39,6 +38,5 @@ export {
   SpeciesSyncError,
   Camera,
   TopRightBackground,
-  TreeCountModal,
   InputModal,
 };

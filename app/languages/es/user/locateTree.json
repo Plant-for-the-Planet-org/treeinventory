@@ -16,8 +16,10 @@
   "locate_tree_map_marking_sub_header": "Por favor, visita la primera esquina de la plantación y selecciona tu ubicación",
   "locate_tree_add_marker_valid": "Estás en la misma ubicación. Por favor, camina a la siguiente ubicación.",
   "locate_tree_add_marker_invalid": "Estás muy lejos de tu ubicación actual.",
+  "locate_tree_cannot_mark_location": "No se puede marcar esta ubicación",
   "locate_tree_alphabets": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
   "locate_tree_location": "Ubicación",
+  "locate_tree_cannot_record_tree": "No se puede registrar el árbol de muestra",
   "locate_tree_cannot_record_tree_outside_polygon": "El árbol de muestra sólo puede registrarse en del lugar marcado.",
   "locate_tree_unable_to_retrieve_location": "No se puede recuperar la ubicación."
 }

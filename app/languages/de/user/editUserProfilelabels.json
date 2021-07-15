@@ -11,7 +11,7 @@
   "manage_offline": "Offlinekarten verwalten",
   "manage_species": "Arten verwalten",
   "activity_logging": "Aktivität aufzeichnen",
-  "activity_logs": "Aktivitätsaufzeichungen",
+  "activity_logs": "Aktivitäten",
   "all_backed_up": "Alle Änderungen gesichert",
   "upload_pending": "{{count}} ausstehend",
   "sync_remaining": "Synchronisiere - {{count}} verbleibend",

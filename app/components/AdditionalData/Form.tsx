@@ -3,7 +3,7 @@ import React, { useContext, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AdditionalDataContext } from '../../reducers/additionalData';
 import { Colors, Typography } from '../../styles';
-import { AlertModal, Loader, PrimaryButton } from '../Common';
+import { AlertModal, InputModal, Loader, PrimaryButton } from '../Common';
 import Dropdown from '../Common/Dropdown';
 import Page from './Page';
 
@@ -21,6 +21,9 @@ function Form({
   const [selectedFormId, setSelectedFormId] = useState<string>('');
   const [selectedPageTitle, setSelectedPageTitle] = useState<string>('');
   const [showAlert, setShowAlert] = useState<boolean>(false);
+  const [showInputModal, setShowInputModal] = useState<boolean>(false);
+  const [editedPageTitle, setEditedPageTitle] = useState<string>('');
+
   const {
     deleteElementFromForm,
     filteredForm,
@@ -50,6 +53,16 @@ function Form({
     setShowAlert(true);
   };
 
+  const updatePageTitle = () => {
+    updateFormData({ pageTitle: editedPageTitle, formId: selectedFormId });
+  };
+
+  const handleShowInputModal = ({ title, formId }: { title: string; formId: string }) => {
+    setEditedPageTitle(title);
+    setSelectedFormId(formId);
+    setShowInputModal(true);
+  };
+
   return (
     <ScrollView
       style={styles.container}
@@ -58,7 +71,8 @@ function Form({
         loading || isInitialLoading || (Array.isArray(filteredForm) && filteredForm.length > 0)
           ? {}
           : styles.alignCenter,
-      ]}>
+      ]}
+      keyboardShouldPersistTaps="always">
       {loading || isInitialLoading ? (
         <Loader
           isLoaderShow={loading || isInitialLoading}
@@ -113,6 +127,9 @@ function Form({
                   deleteElementFromForm(form.id, elementIndex)
                 }
                 updateFormData={updateFormData}
+                handleShowInputModal={() =>
+                  handleShowInputModal({ title: form.title, formId: form.id })
+                }
               />
             ))}
           </>
@@ -125,6 +142,14 @@ function Form({
           <PrimaryButton btnText={i18next.t('label.create_form')} onPress={addNewForm} />
         </>
       )}
+      <InputModal
+        isOpenModal={showInputModal}
+        setIsOpenModal={setShowInputModal}
+        setValue={setEditedPageTitle}
+        value={editedPageTitle}
+        onSubmitInputField={updatePageTitle}
+        inputType={'text'}
+      />
       <AlertModal
         visible={showAlert}
         heading={i18next.t('label.tree_inventory_alert_header')}

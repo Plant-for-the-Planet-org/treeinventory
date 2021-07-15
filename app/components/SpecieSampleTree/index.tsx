@@ -1,36 +1,55 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, SafeAreaView, ScrollView, Text, StyleSheet } from 'react-native';
 import { TopRightBackground, Header } from '../Common';
 import { Colors, Typography } from '../../styles';
-import { SpecieListItem } from '../SampleTrees/TotalTreesSpecies';
 import i18next from 'i18next';
-import { useRoute, CommonActions, useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import { getScientificSpeciesById } from '../../repositories/species';
-import { TouchableOpacity } from 'react-native-gesture-handler';
-
+import { InventoryContext } from '../../reducers/inventory';
+import { getInventory } from '../../repositories/inventory';
+import { getNotSampledSpecies } from '../../utils/getSampleSpecies';
+import { SpecieCard } from '../ManageSpecies/MySpecies';
+import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
+import { SpeciesContext } from '../../reducers/species';
+import { setSpecie } from '../../actions/species';
 interface SpecieSampleTreeProps {
-  notSampledSpecies?: string[];
-  onPressNextTree?: any;
+  onPressBack?: any;
+  addSpecieToInventory?: any;
+  editOnlySpecieName?: any;
 }
 
-type RootStackParamList = {
-  SpecieSampleTree: SpecieSampleTreeProps;
-};
-
-type SpecieSampleRouteProp = RouteProp<RootStackParamList, 'SpecieSampleTree'>;
-
-const SpecieSampleTree = () => {
-  const [speciesToSample, setSpeciesToSample] = useState([]);
-  const route: SpecieSampleRouteProp = useRoute();
+const SpecieSampleTree: React.FC<SpecieSampleTreeProps> = ({
+  onPressBack,
+  addSpecieToInventory,
+  editOnlySpecieName,
+}) => {
+  const [speciesToSample, setSpeciesToSample] = useState<any>([]);
+  const [inventory, setInventory] = useState();
+  const [speciesType, setSpeciesType] = useState('');
   const navigation = useNavigation();
+  const { state } = useContext(InventoryContext);
+  const { dispatch } = useContext(SpeciesContext);
 
+  let currentSampleTree;
   useEffect(() => {
-    createSpeciesArray(route?.params?.notSampledSpecies);
+    getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
+      setInventory(inventoryData);
+      currentSampleTree = inventoryData.sampleTrees[inventoryData.completedSampleTreesCount];
+      if ((currentSampleTree?.latitude && currentSampleTree?.imageUrl) || editOnlySpecieName) {
+        const plantedSpecies = inventoryData.species.map((specie: any) => specie.id);
+        createSpeciesArray(plantedSpecies);
+        setSpeciesType('plantedSpecies');
+      } else {
+        const notSampledSpecies = getNotSampledSpecies(inventoryData);
+        createSpeciesArray(notSampledSpecies);
+        setSpeciesType('notSampledSpecies');
+      }
+    });
   }, []);
 
-  const createSpeciesArray = async (notSampledSpecies: any) => {
+  const createSpeciesArray = async (species: any) => {
     let specieArray: {}[] = [];
-    for (let id of notSampledSpecies) {
+    for (let id of species) {
       let specieItem = await getScientificSpeciesById(id);
       specieArray.push(specieItem);
     }
@@ -38,28 +57,46 @@ const SpecieSampleTree = () => {
   };
 
   const onPressSpecie = (specie: any) => {
-    navigation.dispatch(
-      CommonActions.reset({
-        index: 2,
-        routes: [
-          { name: 'MainScreen' },
-          { name: 'TreeInventory' },
-          {
-            name: 'RecordSampleTrees',
-            params: { specieId: specie.guid, specieName: specie.scientificName },
-          },
-        ],
-      }),
-    );
+    if (speciesType === 'notSampledSpecies') {
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 2,
+          routes: [
+            { name: 'MainScreen' },
+            { name: 'TreeInventory' },
+            {
+              name: 'RecordSampleTrees',
+              params: { specieId: specie.guid, specieName: specie.scientificName },
+            },
+          ],
+        }),
+      );
+    } else if (editOnlySpecieName) {
+      addSpecieToInventory(JSON.stringify(specie));
+      onPressBack();
+    } else {
+      navigation.navigate('SelectSpecies', {
+        specie: JSON.stringify(specie),
+      });
+    }
   };
-
+  const navigateToSpecieInfo = (specie: ScientificSpeciesType) => {
+    setSpecie(specie)(dispatch);
+    navigation.navigate('SpecieInfo', { screen: 'SelectSpecies' });
+  };
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <View style={styles.container}>
         <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
           <TopRightBackground />
           <View style={{ paddingHorizontal: 25 }}>
-            <Header headingText={i18next.t('label.add_sample_tree')} />
+            <Header
+              headingText={
+                inventory?.sampleTrees[inventory?.completedSampleTreesCount] || editOnlySpecieName
+                  ? i18next.t('label.select_species')
+                  : i18next.t('label.add_sample_tree')
+              }
+            />
           </View>
 
           {/* container for description of what sample trees are and how to proceed */}
@@ -68,13 +105,18 @@ const SpecieSampleTree = () => {
               {i18next.t('label.select_species_and_add_sample')}
             </Text>
           </View>
-          {speciesToSample.map((specie, index) => (
-            <TouchableOpacity
-              onPress={() => {
-                onPressSpecie(specie);
-              }}>
-              <SpecieListItem item={specie} index={index} key={index} />
-            </TouchableOpacity>
+          {speciesToSample.map((specie: any, index: number) => (
+            <View style={{ paddingLeft: 25 }} key={index}>
+              <SpecieCard
+                index={index}
+                item={specie}
+                isSampleTree={true}
+                isSampleTreeSpecies={true}
+                onPressSpecies={onPressSpecie}
+                screen={'SelectSpecies'}
+                navigateToSpecieInfo={navigateToSpecieInfo}
+              />
+            </View>
           ))}
         </ScrollView>
       </View>

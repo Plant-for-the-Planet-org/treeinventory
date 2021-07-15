@@ -1,5 +1,5 @@
 import i18next from 'i18next';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Image,
   KeyboardAvoidingView,
@@ -12,27 +12,43 @@ import {
   View,
 } from 'react-native';
 import MCIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { Colors, CommonStyles } from '_styles';
+import { Colors, CommonStyles } from '../../../styles';
 import { species_default } from '../../../assets';
 import { Header } from '../';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { getScientificSpeciesById } from '../../../repositories/species';
 
-export default function TreeCountModal({
+interface TreeCountModalProps {
+  showTreeCountModal: boolean;
+  setShowTreeCountModal: any;
+  activeSpecie: any;
+  setTreeCount: any;
+  treeCount: string;
+  onPressTreeCountNextBtn: any;
+}
+
+const TreeCountModal: React.FC<TreeCountModalProps> = ({
   showTreeCountModal,
+  setShowTreeCountModal,
   activeSpecie,
   setTreeCount,
   treeCount,
   onPressTreeCountNextBtn,
-  setShowTreeCountModal,
-}) {
+}) => {
   let specieName = showTreeCountModal ? activeSpecie?.aliases : '';
+  const [specie, setSpecie] = useState();
+
+  useEffect(() => {
+    if (activeSpecie?.id && showTreeCountModal) {
+      getScientificSpeciesById(activeSpecie?.id).then((scientificSpecie) => {
+        setSpecie(scientificSpecie);
+      });
+      setTreeCount(activeSpecie.treeCount);
+    }
+  }, [activeSpecie, showTreeCountModal]);
   return (
     <Modal visible={showTreeCountModal} transparent={true}>
-      <View
-        style={styles.modalBackground}
-        onPress={() => {
-          setShowTreeCountModal(false);
-        }}>
+      <View style={styles.modalBackground}>
         <View style={styles.inputModal}>
           <Ionicons
             name={'md-close'}
@@ -43,14 +59,20 @@ export default function TreeCountModal({
             }}
           />
           <Image
-            source={activeSpecie?.image ? { uri: `${activeSpecie.image}` } : species_default}
+            source={
+              activeSpecie?.image
+                ? { uri: `${activeSpecie?.image}` }
+                : specie?.image
+                ? { uri: `${specie?.image}` }
+                : species_default
+            }
             style={{
               alignSelf: 'center',
               marginVertical: 20,
               width: 150,
               height: 100,
               borderRadius: 5,
-              resizeMode: activeSpecie?.image ? null : 'contain',
+              resizeMode: activeSpecie?.image || specie?.image ? null : 'contain',
             }}
           />
           <Header
@@ -80,7 +102,7 @@ export default function TreeCountModal({
             {i18next.t('label.select_species_modal_label')}
           </Text>
           <TextInput
-            value={treeCount.toString()}
+            value={treeCount?.toString()}
             style={CommonStyles.bottomInputText}
             autoFocus
             placeholderTextColor={Colors.TEXT_COLOR}
@@ -98,7 +120,9 @@ export default function TreeCountModal({
       </KeyboardAvoidingView>
     </Modal>
   );
-}
+};
+
+export default TreeCountModal;
 
 const styles = StyleSheet.create({
   modalBackground: {
@@ -114,5 +138,8 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 20,
     width: '80%',
+  },
+  bgWhite: {
+    backgroundColor: Colors.WHITE,
   },
 });

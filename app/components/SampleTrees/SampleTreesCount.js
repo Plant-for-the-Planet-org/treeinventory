@@ -109,7 +109,7 @@ export default function SampleTreesCount() {
 
   // used for navigation
   const navigation = useNavigation();
-  const dimensionRegex = /^\d{0,2}(\.\d{0})?$/;
+  const dimensionRegex = /^\d{0,3}(\.\d{0})?$/;
 
   // sets the sample tree count in the inventory schema and the navigates to map marking of sample trees
   const onPressContinue = () => {

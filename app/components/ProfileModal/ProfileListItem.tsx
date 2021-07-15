@@ -13,7 +13,7 @@ import {
 import Icon from 'react-native-vector-icons/FontAwesome5';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Octicons from 'react-native-vector-icons/Octicons';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography } from '../../styles';
 
 interface ProfileListItemProps {
   media: string | ImageSourcePropType;

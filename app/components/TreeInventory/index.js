@@ -29,6 +29,8 @@ import {
 } from '../../utils/inventoryConstants';
 import { UserContext } from '../../reducers/user';
 import VerifyEmailAlert from '../Common/EmailAlert';
+import { getUserDetails } from '../../repositories/user';
+import { useNetInfo } from '@react-native-community/netinfo';
 
 const IS_ANDROID = Platform.OS === 'android';
 
@@ -43,6 +45,10 @@ const TreeInventory = ({ navigation }) => {
   const [uploadingInventory, setUploadingInventory] = useState([]);
   const [inCompleteInventory, setInCompleteInventory] = useState([]);
   const [uploadedInventory, setUploadedInventory] = useState([]);
+  const [countryCode, setCountryCode] = useState('');
+  const [offlineModal, setOfflineModal] = useState(false);
+
+  const netInfo = useNetInfo();
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
@@ -71,52 +77,61 @@ const TreeInventory = ({ navigation }) => {
   };
 
   const initialState = () => {
-    getInventoryByStatus('all').then((allInventory) => {
+    getInventoryByStatus([]).then((allInventory) => {
       setAllInventory(allInventory);
       filteredInventories();
+    });
+    getUserDetails().then((userDetails) => {
+      setCountryCode(userDetails?.country || '');
     });
   };
 
   const onPressClearAll = () => {
     clearAllIncompleteInventory().then(() => {
-      getInventoryByStatus('all').then((allInventory) => {
+      getInventoryByStatus([]).then((allInventory) => {
         setAllInventory(allInventory);
       });
     });
   };
 
   const filteredInventories = () => {
-    getInventoryByStatus(INCOMPLETE, INCOMPLETE_SAMPLE_TREE).then((inventoryList) => {
+    getInventoryByStatus([INCOMPLETE, INCOMPLETE_SAMPLE_TREE]).then((inventoryList) => {
       setInCompleteInventory(inventoryList);
     });
-    getInventoryByStatus(PENDING_DATA_UPLOAD).then((inventoryList) => {
+    getInventoryByStatus([PENDING_DATA_UPLOAD]).then((inventoryList) => {
       setPendingInventory(inventoryList);
     });
-    getInventoryByStatus(PENDING_IMAGE_UPLOAD, PENDING_SAMPLE_TREES_UPLOAD, DATA_UPLOAD_START).then(
-      (inventoryList) => {
-        setUploadingInventory(inventoryList);
-      },
-    );
-    getInventoryByStatus(SYNCED).then((inventoryList) => {
+    getInventoryByStatus([
+      PENDING_IMAGE_UPLOAD,
+      PENDING_SAMPLE_TREES_UPLOAD,
+      DATA_UPLOAD_START,
+    ]).then((inventoryList) => {
+      setUploadingInventory(inventoryList);
+    });
+    getInventoryByStatus([SYNCED]).then((inventoryList) => {
       setUploadedInventory(inventoryList);
     });
   };
 
   const onPressUploadNow = () => {
-    uploadInventoryData(dispatch, userDispatch)
-      .then(() => {
-        // handleBackPress();
-      })
-      .catch((err) => {
-        if (err?.response?.status === 303) {
-          navigation.navigate('SignUp');
-        } else if (err?.message === 'blocked') {
-          setIsPermissionBlockedAlertShow(true);
-        } else if (err?.error !== 'a0.session.user_cancelled') {
-          setEmailAlert(true);
-        }
-      });
-    navigation.goBack();
+    if (netInfo.isConnected && netInfo.isInternetReachable) {
+      uploadInventoryData(dispatch, userDispatch)
+        .then(() => {
+          // handleBackPress();
+        })
+        .catch((err) => {
+          if (err?.response?.status === 303) {
+            navigation.navigate('SignUp');
+          } else if (err?.message === 'blocked') {
+            setIsPermissionBlockedAlertShow(true);
+          } else if (err?.error !== 'a0.session.user_cancelled') {
+            setEmailAlert(true);
+          }
+        });
+      navigation.goBack();
+    } else {
+      setOfflineModal(true);
+    }
   };
 
   const renderLoadingInventoryList = () => {
@@ -182,6 +197,7 @@ const TreeInventory = ({ navigation }) => {
             state={state}
             navigation={navigation}
             onPressUploadNow={onPressUploadNow}
+            countryCode={countryCode}
           />
         </ScrollView>
         <PrimaryButton
@@ -208,7 +224,10 @@ const TreeInventory = ({ navigation }) => {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.WHITE }}>
       <SafeAreaView />
-      {pendingInventory.length > 0 || inCompleteInventory.length > 0 || uploadedInventory.length > 0
+      {pendingInventory.length > 0 ||
+      inCompleteInventory.length > 0 ||
+      uploadedInventory.length > 0 ||
+      uploadingInventory.length > 0
         ? renderInventoryListContainer()
         : allInventory == null
           ? renderLoadingInventoryList()
@@ -217,6 +236,15 @@ const TreeInventory = ({ navigation }) => {
         isPermissionBlockedAlertShow={isPermissionBlockedAlertShow}
         setIsPermissionBlockedAlertShow={setIsPermissionBlockedAlertShow}
         handleBackPress={handleBackPress}
+      />
+      <AlertModal
+        visible={offlineModal}
+        heading={i18next.t('label.network_error')}
+        message={i18next.t('label.network_error_message')}
+        primaryBtnText={i18next.t('label.ok')}
+        onPressPrimaryBtn={() => {
+          setOfflineModal(false);
+        }}
       />
       <VerifyEmailAlert emailAlert={emailAlert} setEmailAlert={setEmailAlert} />
     </View>
@@ -233,6 +261,7 @@ const RenderInventory = ({
   state,
   navigation,
   onPressUploadNow,
+  countryCode,
 }) => {
   return (
     <View style={styles.cont}>
@@ -298,6 +327,7 @@ const RenderInventory = ({
           <InventoryList
             accessibilityLabel={i18next.t('label.tree_inventory_inventory_list')}
             inventoryList={inCompleteInventory}
+            countryCode={countryCode}
           />
         </>
       )}

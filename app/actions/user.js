@@ -6,16 +6,12 @@ import { addProjects } from '../repositories/projects';
 import { resetAllSpecies } from '../repositories/species';
 import { createOrModifyUserToken, deleteUser, modifyUserDetails } from '../repositories/user';
 import { bugsnag } from '../utils';
+import { addInventoryFromServer } from '../utils/addInventoryFromServer';
 import { checkAndAddUserSpecies } from '../utils/addUserSpecies';
-import {
-  getAuthenticatedRequest,
-  getRequest,
-  postRequest,
-  getExpirationTimeStamp,
-} from '../utils/api';
+import { getAuthenticatedRequest, getExpirationTimeStamp, postRequest } from '../utils/api';
+import { isInternetConnected } from '../utils/checkInternet';
 import { LogTypes } from '../utils/constants';
 import { CLEAR_USER_DETAILS, SET_INITIAL_USER_STATE, SET_USER_DETAILS } from './Types';
-import { addInventoryFromServer } from '../utils/addInventoryFromServer';
 
 // creates auth0 instance while providing the auth0 domain and auth0 client id
 const auth0 = new Auth0({ domain: Config.AUTH0_DOMAIN, clientId: Config.AUTH0_CLIENT_ID });
@@ -122,10 +118,16 @@ export const auth0Login = (dispatch) => {
  * Logs out the user by clearing the session from auth0 then calls the deleteUser function to delete the user from DB
  * also calls the function [clearUserDetails] which dispatches type to clear the app's user state
  * @param {ActionDispatch} userDispatch - dispatch function of user context to pass it to func [clearUserDetails]
- * @returns {boolean} - returns true after all the operations are successful else returns false
+ * @returns {Promise<boolean>} - returns true after all the operations are successful else returns false
  */
-export const auth0Logout = (userDispatch = null) => {
+export const auth0Logout = async (userDispatch = null) => {
+  const isConnected = await isInternetConnected();
+
   return new Promise((resolve) => {
+    if (!isConnected) {
+      resolve(false);
+      return;
+    }
     auth0.webAuth
       .clearSession()
       .then(async () => {
@@ -176,7 +178,12 @@ export const auth0Logout = (userDispatch = null) => {
  * @param {string} refreshToken - used to fetch a new access token
  */
 export const getNewAccessToken = async (refreshToken) => {
+  const isConnected = await isInternetConnected();
   return new Promise((resolve) => {
+    if (!isConnected) {
+      resolve(false);
+      return;
+    }
     if (refreshToken) {
       // calls the refreshToken function of auth0 by passing the refreshToken
       auth0.auth
@@ -292,7 +299,7 @@ export const getUserDetailsFromServer = (userDispatch) => {
           logType: LogTypes.USER,
           message: 'Failed to retrieve User Information from Server',
           statusCode: err?.response?.status,
-          logStack: JSON.stringify(err.response),
+          logStack: err?.response ? JSON.stringify(err?.response) : JSON.stringify(err),
         });
         reject(err);
       });
@@ -335,6 +342,7 @@ export const SignupService = (payload, dispatch) => {
           logType: LogTypes.USER,
           message: 'Failed to Sign up',
           statusCode: err?.response?.status,
+          logStack: err?.response ? JSON.stringify(err?.response) : JSON.stringify(err),
         });
         // if any error is found then deletes the user and clear the user app state
         deleteUser();

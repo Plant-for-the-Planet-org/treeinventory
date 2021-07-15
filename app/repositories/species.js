@@ -119,7 +119,15 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
           for (const specie of alreadySyncedSpecies) {
             let base64Image = null;
             if (specie.image) {
-              base64Image = await getBase64ImageFromURL(specie.image);
+              try {
+                base64Image = await getBase64ImageFromURL(specie.image);
+              } catch (err) {
+                dbLog.error({
+                  logType: LogTypes.OTHER,
+                  message: 'Failed to get base64 image',
+                  logStack: JSON.stringify(err),
+                });
+              }
             }
             // find the scientific specie using scientific specie guid and update the properties to
             // [isUploaded = true] and [isUserSpecies = true]
@@ -234,7 +242,15 @@ export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid, specie) => {
             }
             if (!specieResult.image && specie.image) {
               let base64Image;
-              base64Image = await getBase64ImageFromURL(specie.image);
+              try {
+                base64Image = await getBase64ImageFromURL(specie.image);
+              } catch (err) {
+                dbLog.error({
+                  logType: LogTypes.OTHER,
+                  message: 'Failed to get base64 image',
+                  logStack: JSON.stringify(err),
+                });
+              }
               specieData.image = base64Image ? `data:image/jpeg;base64,${base64Image}` : '';
               specieResult.image = base64Image ? `data:image/jpeg;base64,${base64Image}` : '';
             }

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from '../../../styles';
 import { useNavigation } from '@react-navigation/native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import MIcon from 'react-native-vector-icons/MaterialIcons';
 
 interface IHeaderProps {
   hideBackIcon?: any;
@@ -106,7 +107,8 @@ const Header = ({
                 color: Colors.TEXT_COLOR,
                 // flex: 1,
               }}>
-              {headingTextEditable}
+              {`${headingTextEditable} `}
+              <MIcon name={'edit'} size={20} />
             </Text>
           </TouchableOpacity>
         ) : (
