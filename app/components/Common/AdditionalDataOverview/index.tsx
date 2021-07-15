@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Colors, Typography } from '../../../styles';
 import { additionalDataForUI, getFormattedMetadata } from '../../../utils/additionalData/functions';
-import { INCOMPLETE, INCOMPLETE_SAMPLE_TREE } from '../../../utils/inventoryConstants';
 
 interface Props {
   data: any;

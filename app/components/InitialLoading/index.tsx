@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ActivityIndicator } from 'react-native';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography } from '../../styles';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SvgXml } from 'react-native-svg';
 import { mobile_download, cloud_sync } from '../../assets';
@@ -9,11 +9,10 @@ import { migrateRealm } from '../../repositories/default';
 import updateAndSyncLocalSpecies from '../../utils/updateAndSyncLocalSpecies';
 import AsyncStorage from '@react-native-community/async-storage';
 import { NavigationContext } from '../../reducers/navigation';
-import { showMainNavigationStack } from '../../actions/navigation';
 import dbLog from '../../repositories/logs';
 import { LogTypes } from '../../utils/constants';
 
-const SpeciesContainer = ({ updatingSpeciesState }) => {
+const SpeciesContainer = ({ updatingSpeciesState }: { updatingSpeciesState: string }) => {
   switch (updatingSpeciesState) {
     case 'INITIAL':
       return <Text style={styles.descriptionText}>{i18next.t('label.species_data_status')}</Text>;
@@ -37,7 +36,12 @@ export default function InitialLoading() {
   const navigation = useNavigation();
   const isSpeciesLoadingScreen = route.name === 'SpeciesLoading';
 
-  const { dispatch } = React.useContext(NavigationContext);
+  const {
+    showMainNavigationStack,
+    setInitialNavigationScreen,
+    updateSpeciesSync,
+    setUpdateSpeciesSync,
+  } = React.useContext(NavigationContext);
 
   const [updatingSpeciesState, setUpdatingSpeciesState] = React.useState('INITIAL');
 
@@ -62,7 +66,8 @@ export default function InitialLoading() {
           const isSpeciesLoaded = await AsyncStorage.getItem('isLocalSpeciesUpdated');
 
           if (isSpeciesLoaded === 'true') {
-            showMainNavigationStack()(dispatch);
+            setInitialNavigationScreen('');
+            showMainNavigationStack();
           } else {
             navigation.navigate('SpeciesLoading');
           }
@@ -77,17 +82,21 @@ export default function InitialLoading() {
         });
     } else {
       // calls this function to update the species in the realm DB
-      updateAndSyncLocalSpecies(setUpdatingSpeciesState)
+      updateAndSyncLocalSpecies(setUpdatingSpeciesState, updateSpeciesSync)
         .then(() => {
-          showMainNavigationStack()(dispatch);
+          setUpdateSpeciesSync(false);
+          setInitialNavigationScreen('');
+          showMainNavigationStack();
         })
         .catch((err) => {
           dbLog.error({
             logType: LogTypes.OTHER,
-            message: 'Failed to update and sync Local species',
+            message: 'Failed to update and sync local species',
             logStack: JSON.stringify(err),
           });
-          showMainNavigationStack()(dispatch);
+          setUpdateSpeciesSync(false);
+          setInitialNavigationScreen('');
+          showMainNavigationStack();
         });
     }
   }, []);

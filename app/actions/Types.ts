@@ -40,11 +40,5 @@ export const SET_USER_DETAILS = 'SET_USER_DETAILS';
 // Type to reset the user state to initialState. Used when user is logged out or no user data is present
 export const CLEAR_USER_DETAILS = 'CLEAR_USER_DETAILS';
 
-// Type to show the initial screens navigation stack
-export const SET_SHOW_INITIAL_STACK = 'SET_SHOW_INITIAL_STACK';
-
-// Type to show main screens navigation stack
-export const SET_SHOW_MAIN_STACK = 'SET_SHOW_MAIN_STACK';
-
 // Type to show main screens navigation stack
 export const SET_SKIP_TO_INVENTORY_OVERVIEW = 'SET_SKIP_TO_INVENTORY_OVERVIEW';

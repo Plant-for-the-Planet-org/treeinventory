@@ -16,7 +16,7 @@ import {
 import * as RNLocalize from 'react-native-localize';
 import Snackbar from 'react-native-snackbar';
 import Ionicons from 'react-native-vector-icons/FontAwesome';
-import { Colors, Typography } from '_styles';
+import { Colors, Typography } from '../../styles';
 import { APIConfig } from '../../actions/Config';
 import { startSignUpLoading, stopLoading, stopSignUpLoading } from '../../actions/loader';
 import { auth0Logout, SignupService } from '../../actions/user';

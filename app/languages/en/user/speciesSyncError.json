@@ -1,8 +1,11 @@
 {
-  "speciesSyncError_heading": "Species sync is incomplete!",
-  "speciesSyncError_text": "Species syncing is required to add species in inventory. Sync when internet connection is available.",
+  "species_sync_error_heading": "Species sync is incomplete!",
+  "species_sync_error_text": "Species syncing is required to add species in inventory. Sync when internet connection is available.",
   "something_went_wrong": "Something went wrong!",
   "no_internet_connection": "No Internet Connection!",
   "verify_email": "Verify your Email",
-  "verify_email_message": "Please verify your email before logging in."
+  "verify_email_message": "Please verify your email before logging in.",
+  "species_sync_update_alert_title":"Update Species",
+  "species_sync_update_alert_message":"Updating species requires internet and take a while until it's completed. Are you sure you want to continue?"
+
 }

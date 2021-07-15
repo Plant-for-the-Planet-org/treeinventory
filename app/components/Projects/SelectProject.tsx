@@ -2,7 +2,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import { SafeAreaView, StyleSheet, View } from 'react-native';
-import { Colors } from '_styles';
+import { Colors } from '../../styles';
 import { InventoryContext } from '../../reducers/inventory';
 import { updateInventory } from '../../repositories/inventory';
 import dbLog from '../../repositories/logs';

@@ -1,34 +1,39 @@
-import { CommonActions, useNavigation } from '@react-navigation/native';
+import { useNetInfo } from '@react-native-community/netinfo';
+import { CommonActions, useNavigation, useRoute } from '@react-navigation/native';
 import i18next from 'i18next';
 import React, { useContext, useEffect, useState } from 'react';
 import {
   Keyboard,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  ScrollView,
 } from 'react-native';
+import Snackbar from 'react-native-snackbar';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import Realm from 'realm';
-import { Colors, Typography } from '../../styles';
 import { setSpecie } from '../../actions/species';
 import { InventoryContext } from '../../reducers/inventory';
+import { NavigationContext } from '../../reducers/navigation';
 import { SpeciesContext } from '../../reducers/species';
 import { getSchema } from '../../repositories/default';
 import { getInventory } from '../../repositories/inventory';
 import dbLog from '../../repositories/logs';
 import { getUserSpecies, searchSpeciesFromLocal } from '../../repositories/species';
+import { Colors, Typography } from '../../styles';
 import { LogTypes } from '../../utils/constants';
 import { MULTI } from '../../utils/inventoryConstants';
+import { IScientificSpecies } from '../../utils/schemaInterfaces';
+import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
 import { AlertModal, Header, SpeciesSyncError } from '../Common';
+import IconSwitcher from '../Common/IconSwitcher';
 import TreeCountModal from '../Common/TreeCountModal';
 import MySpecies from './MySpecies';
 import SearchSpecies from './SearchSpecies';
-import { ScientificSpeciesType } from '../../utils/ScientificSpecies/ScientificSpeciesTypes';
 
 const DismissKeyBoard = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -76,13 +81,23 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
   const [activeSpecie, setActiveSpecie] = useState<any>();
   const [deleteSpecieAlert, setDeleteSpecieAlert] = useState(false);
   const [speciesIndexToDelete, setSpeciesIndexToDelete] = useState<number>();
+  const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false);
+
+  const netInfo = useNetInfo();
+
+  const route = useRoute();
 
   const { dispatch } = useContext(SpeciesContext);
   const { state } = useContext(InventoryContext);
+  const {
+    showInitialNavigationStack,
+    setInitialNavigationScreen,
+    setUpdateSpeciesSync,
+  } = useContext(NavigationContext);
 
   useEffect(() => {
     // fetches all the species already added by user when component mount
-    getUserSpecies().then((userSpecies) => {
+    getUserSpecies().then((userSpecies: IScientificSpecies[]) => {
       if (registrationType) {
         let specieListWithUnknown: ScientificSpeciesType[] = [];
         if (userSpecies && userSpecies.length > 0) {
@@ -120,11 +135,6 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
     }
   }, [searchText]);
 
-  // used to navigate to main screen
-  const onPressHome = () => {
-    navigation.navigate('MainScreen');
-  };
-
   useEffect(() => {
     if (screen === 'SelectSpecies') {
       getInventory({ inventoryID: state.inventoryID }).then((inventoryData) => {
@@ -132,6 +142,12 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
       });
     }
   }, []);
+
+  // used to navigate to main screen
+  const onPressHome = () => {
+    navigation.navigate('MainScreen');
+  };
+
   // This function adds or removes the specie from User Species
   // ! Do not move this function to repository as state change is happening here to increase the performance
   const toggleUserSpecies = (guid: string, addSpecie = false) => {
@@ -261,20 +277,56 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
     navigateAfterTreeCount();
   };
 
+  const handleSpeciesSyncPress = () => {
+    setShowSpeciesSyncAlert(false);
+    if (netInfo.isConnected && netInfo.isInternetReachable) {
+      setUpdateSpeciesSync(true);
+      setInitialNavigationScreen('SpeciesLoading');
+      showInitialNavigationStack();
+    } else {
+      setTimeout(
+        () =>
+          Snackbar.show({
+            text: i18next.t('label.no_internet_connection'),
+            duration: Snackbar.LENGTH_SHORT,
+            backgroundColor: '#e74c3c',
+          }),
+        1000,
+      );
+    }
+  };
+
   return (
     <SafeAreaView style={styles.mainContainer}>
       <DismissKeyBoard>
         <ScrollView style={{ flex: 1 }}>
+          <Header
+            closeIcon
+            onBackPress={onPressBack ? onPressBack : onPressHome}
+            headingText={
+              registrationType
+                ? i18next.t('label.select_species_header')
+                : i18next.t('label.select_species_tree_species')
+            }
+            TitleRightComponent={
+              route.name === 'ManageSpecies'
+                ? () => (
+                    <TouchableOpacity
+                      style={{ padding: 10 }}
+                      onPress={() => setShowSpeciesSyncAlert(true)}>
+                      <IconSwitcher
+                        name={'sync-alt'}
+                        iconType={'FA5Icon'}
+                        size={20}
+                        color={Colors.TEXT_COLOR}
+                      />
+                    </TouchableOpacity>
+                  )
+                : () => <></>
+            }
+            style={{ paddingLeft: 25, paddingRight: route.name === 'ManageSpecies' ? 15 : 25 }}
+          />
           <View style={styles.container}>
-            <Header
-              closeIcon
-              onBackPress={onPressBack ? onPressBack : onPressHome}
-              headingText={
-                registrationType
-                  ? i18next.t('label.select_species_header')
-                  : i18next.t('label.select_species_tree_species')
-              }
-            />
             <SpeciesSyncError />
             <View style={styles.searchBar}>
               <Ionicons name="search-outline" size={20} style={styles.searchIcon} />
@@ -354,6 +406,16 @@ const ManageSpecies: React.FC<ManageSpeciesProps> = ({
         secondaryBtnText={i18next.t('label.cancel')}
         onPressPrimaryBtn={() => handleZeroSpeciesDelete()}
         onPressSecondaryBtn={() => setDeleteSpecieAlert(false)}
+      />
+      <AlertModal
+        visible={showSpeciesSyncAlert}
+        heading={i18next.t('label.species_sync_update_alert_title')}
+        message={i18next.t('label.species_sync_update_alert_message')}
+        showSecondaryButton={true}
+        primaryBtnText={i18next.t('label.yes')}
+        secondaryBtnText={i18next.t('label.cancel')}
+        onPressPrimaryBtn={() => handleSpeciesSyncPress()}
+        onPressSecondaryBtn={() => setShowSpeciesSyncAlert(false)}
       />
     </SafeAreaView>
   );

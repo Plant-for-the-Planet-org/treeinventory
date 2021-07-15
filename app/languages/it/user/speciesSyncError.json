@@ -1,6 +1,6 @@
 {
-  "speciesSyncError_heading": "La sincronizzazione delle specie è incompleta!",
-  "speciesSyncError_text": "La sincronizzazione delle specie è necessaria per aggiungere le specie nell'inventario. Sincronizza quando la connessione internet è disponibile.",
+  "species_sync_error_heading": "La sincronizzazione delle specie è incompleta!",
+  "species_sync_error_text": "La sincronizzazione delle specie è necessaria per aggiungere le specie nell'inventario. Sincronizza quando la connessione internet è disponibile.",
   "something_went_wrong": "Qualcosa è andato storto!",
   "no_internet_connection": "Nessuna connessione Internet!",
   "verify_email": "Verifica la tua e-mail",

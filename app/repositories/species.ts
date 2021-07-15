@@ -5,22 +5,37 @@ import dbLog from '../repositories/logs';
 import { getSchema } from './default';
 import AsyncStorage from '@react-native-community/async-storage';
 import { getBase64ImageFromURL, updateUserSpecie } from '../actions/species';
+import { IScientificSpecies } from '../utils/schemaInterfaces';
 
-export const updateAndSyncLocalSpecies = (speciesData) => {
+interface IApiSpeciesData {
+  guid: string;
+  scientific_name: string;
+}
+
+export const updateAndSyncLocalSpecies = (
+  speciesData: IApiSpeciesData[],
+  shouldUpdate: boolean = false,
+) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
           speciesData.forEach((specie, index) => {
-            realm.create(
-              'ScientificSpecies',
-              {
-                guid: specie.guid,
-                scientificName: specie.scientific_name,
-                aliases: specie.scientific_name,
-              },
-              Realm.UpdateMode.Modified,
-            );
+            const speciesToAdd = {
+              guid: specie.guid,
+              scientificName: specie.scientific_name,
+              aliases: specie.scientific_name,
+            };
+            if (shouldUpdate) {
+              const speciesResult: IScientificSpecies | undefined = realm.objectForPrimaryKey(
+                'ScientificSpecies',
+                specie.guid,
+              );
+              if (speciesResult) {
+                speciesToAdd.aliases = speciesResult.aliases;
+              }
+            }
+            realm.create('ScientificSpecies', speciesToAdd, Realm.UpdateMode.Modified);
             if (index === speciesData.length - 1) {
               // logging the success in to the db
               dbLog.info({
@@ -47,7 +62,7 @@ export const updateAndSyncLocalSpecies = (speciesData) => {
   });
 };
 
-export const searchSpeciesFromLocal = (text) => {
+export const searchSpeciesFromLocal = (text: string) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -76,7 +91,7 @@ export const searchSpeciesFromLocal = (text) => {
   });
 };
 
-export const getUserSpecies = () => {
+export const getUserSpecies = (): Promise<any> => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
@@ -109,7 +124,7 @@ export const getUserSpecies = () => {
  * and [isUploaded = false]
  * @param {Array} alreadySyncedSpecies - contains the list of already synced user's preferred species
  */
-export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
+export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies: any) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then(async (realm) => {
@@ -117,7 +132,7 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
           // iterates through all the user preferred species which are already synced and updates the same in DB
 
           for (const specie of alreadySyncedSpecies) {
-            let base64Image = null;
+            let base64Image: string = '';
             if (specie.image) {
               try {
                 base64Image = await getBase64ImageFromURL(specie.image);
@@ -132,7 +147,7 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
             // find the scientific specie using scientific specie guid and update the properties to
             // [isUploaded = true] and [isUserSpecies = true]
             realm.write(() => {
-              let specieResult = realm.objectForPrimaryKey(
+              let specieResult: IScientificSpecies | undefined = realm.objectForPrimaryKey(
                 'ScientificSpecies',
                 specie.scientificSpecies,
               );
@@ -211,57 +226,62 @@ export const updateAndGetUserSpeciesToSync = (alreadySyncedSpecies) => {
  * This function is used when specie is already uploaded on the server.
  * Used to add specie id to scientific species using scientific species guid
  * @param {string} scientificSpecieGuid - scientific specie guid to search from and update the specie id
- * @param {Object} specie - specie which is to be updated
+ * @param {any} specie - specie which is to be updated
  */
-export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid, specie) => {
+export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid: string, specie: any) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(async () => {
           // find the scientific specie using scientific specie guid and updates the specieId
           // modifies [isUploaded] and [isUserSpecies] to [true]
-          let specieResult = realm.objectForPrimaryKey('ScientificSpecies', scientificSpecieGuid);
-          specieResult.specieId = specie.id;
-          specieResult.isUploaded = true;
-          specieResult.isUserSpecies = true;
-          if (!specieResult.isUpdated) {
-            const specieData = {
-              scientificSpecieGuid: specieResult.guid,
-              specieId: specieResult.specieId,
-              aliases: specieResult.aliases,
-              description: specieResult.description,
-              image: specieResult.image,
-            };
-            if (!specieResult.aliases || specieResult.aliases === specieResult.guid) {
-              specieData.aliases = specie.aliases;
-              specieResult.aliases = specie.aliases;
-            }
-            if (!specieResult.description && specie.description) {
-              specieData.description = specie.description;
-              specieResult.description = specie.description;
-            }
-            if (!specieResult.image && specie.image) {
-              let base64Image;
-              try {
-                base64Image = await getBase64ImageFromURL(specie.image);
-              } catch (err) {
-                dbLog.error({
-                  logType: LogTypes.OTHER,
-                  message: 'Failed to get base64 image',
-                  logStack: JSON.stringify(err),
-                });
+          let specieResult: IScientificSpecies | undefined = realm.objectForPrimaryKey(
+            'ScientificSpecies',
+            scientificSpecieGuid,
+          );
+          if (specieResult) {
+            specieResult.specieId = specie.id;
+            specieResult.isUploaded = true;
+            specieResult.isUserSpecies = true;
+            if (!specieResult.isUpdated) {
+              const specieData = {
+                scientificSpecieGuid: specieResult.guid,
+                specieId: specieResult.specieId,
+                aliases: specieResult.aliases,
+                description: specieResult.description,
+                image: specieResult.image,
+              };
+              if (!specieResult.aliases || specieResult.aliases === specieResult.guid) {
+                specieData.aliases = specie.aliases;
+                specieResult.aliases = specie.aliases;
               }
-              specieData.image = base64Image ? `data:image/jpeg;base64,${base64Image}` : '';
-              specieResult.image = base64Image ? `data:image/jpeg;base64,${base64Image}` : '';
-            }
-            if (
-              Object.prototype.hasOwnProperty.call(specieData, 'aliases') ||
-              Object.prototype.hasOwnProperty.call(specieData, 'description') ||
-              Object.prototype.hasOwnProperty.call(specieData, 'image')
-            ) {
-              updateUserSpecie(specieData).then(resolve).catch(reject);
-            } else {
-              specieResult.isUpdated = true;
+              if (!specieResult.description && specie.description) {
+                specieData.description = specie.description;
+                specieResult.description = specie.description;
+              }
+              if (!specieResult.image && specie.image) {
+                let base64Image;
+                try {
+                  base64Image = await getBase64ImageFromURL(specie.image);
+                } catch (err) {
+                  dbLog.error({
+                    logType: LogTypes.OTHER,
+                    message: 'Failed to get base64 image',
+                    logStack: JSON.stringify(err),
+                  });
+                }
+                specieData.image = base64Image ? `data:image/jpeg;base64,${base64Image}` : '';
+                specieResult.image = base64Image ? `data:image/jpeg;base64,${base64Image}` : '';
+              }
+              if (
+                Object.prototype.hasOwnProperty.call(specieData, 'aliases') ||
+                Object.prototype.hasOwnProperty.call(specieData, 'description') ||
+                Object.prototype.hasOwnProperty.call(specieData, 'image')
+              ) {
+                updateUserSpecie(specieData).then(resolve).catch(reject);
+              } else {
+                specieResult.isUpdated = true;
+              }
             }
           }
         });
@@ -293,18 +313,23 @@ export const addSpecieIdFromSyncedSpecie = (scientificSpecieGuid, specie) => {
  * [isUploaded] and [isUserSpecies] to [false]
  * @param {string} scientificSpecieGuid - scientific specie guid to search from and update the specie id
  */
-export const removeSpecieId = (scientificSpecieGuid) => {
+export const removeSpecieId = (scientificSpecieGuid: string) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
           // find the scientific specie using scientific specie guid and updates the specieId to empty string,
           // modifies [isUploaded] and [isUserSpecies] to [false]
-          let specieResult = realm.objectForPrimaryKey('ScientificSpecies', scientificSpecieGuid);
-          specieResult.specieId = '';
-          specieResult.isUploaded = false;
-          specieResult.isUserSpecies = false;
-          specieResult.isUpdated = true;
+          let specieResult: IScientificSpecies | undefined = realm.objectForPrimaryKey(
+            'ScientificSpecies',
+            scientificSpecieGuid,
+          );
+          if (specieResult) {
+            specieResult.specieId = '';
+            specieResult.isUploaded = false;
+            specieResult.isUserSpecies = false;
+            specieResult.isUpdated = true;
+          }
         });
         // logging the success in to the db
         dbLog.info({
@@ -326,22 +351,37 @@ export const removeSpecieId = (scientificSpecieGuid) => {
   });
 };
 
-export const updateSpecieData = ({ scientificSpecieGuid, aliases, description, image }) => {
+export const updateSpecieData = ({
+  scientificSpecieGuid,
+  aliases,
+  description,
+  image,
+}: {
+  scientificSpecieGuid: string;
+  aliases: string;
+  description: string;
+  image: string;
+}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
           // find the scientific specie using scientific specie guid and updates the specieId to empty string,
           // modifies [isUploaded] and [isUserSpecies] to [false]
-          let specieResult = realm.objectForPrimaryKey('ScientificSpecies', scientificSpecieGuid);
-          if (aliases) {
-            specieResult.aliases = aliases;
-          }
-          if (description) {
-            specieResult.description = description;
-          }
-          if (image || image === '') {
-            specieResult.image = `${image}`;
+          let specieResult: IScientificSpecies | undefined = realm.objectForPrimaryKey(
+            'ScientificSpecies',
+            scientificSpecieGuid,
+          );
+          if (specieResult) {
+            if (aliases) {
+              specieResult.aliases = aliases;
+            }
+            if (description) {
+              specieResult.description = description;
+            }
+            if (image || image === '') {
+              specieResult.image = `${image}`;
+            }
           }
         });
         changeIsUpdatedStatus({ scientificSpecieGuid, isUpdated: false });
@@ -365,45 +405,22 @@ export const updateSpecieData = ({ scientificSpecieGuid, aliases, description, i
   });
 };
 
-export const addLocalImage = (scientificSpecieGuid, image) => {
+export const changeIsUpdatedStatus = ({
+  scientificSpecieGuid,
+  isUpdated,
+}: {
+  scientificSpecieGuid: string;
+  isUpdated: boolean;
+}) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
-          // find the scientific specie using scientific specie guid and updates the specieId to empty string,
-          // modifies [isUploaded] and [isUserSpecies] to [false]
-          let specieResult = realm.objectForPrimaryKey('ScientificSpecies', scientificSpecieGuid);
-          specieResult.image = `data:image/jpeg;base64,${image}`;
-          specieResult.isUpdated = false;
-          // specieResult.description = description;
-        });
-        // logging the success in to the db
-        dbLog.info({
-          logType: LogTypes.MANAGE_SPECIES,
-          message: `Added Local Image to a specie having scientific specie guid: ${scientificSpecieGuid}`,
-        });
-        resolve(true);
-      })
-      .catch((err) => {
-        dbLog.error({
-          logType: LogTypes.MANAGE_SPECIES,
-          message: `Error while adding Local Image to a specie having scientific specie guid: ${scientificSpecieGuid}`,
-          logStack: JSON.stringify(err),
-        });
-        console.error(`Error at /repositories/species/addLocalImage, ${JSON.stringify(err)}`);
-        bugsnag.notify(err);
-        reject(err);
-      });
-  });
-};
-
-export const changeIsUpdatedStatus = ({ scientificSpecieGuid, isUpdated }) => {
-  return new Promise((resolve, reject) => {
-    Realm.open(getSchema())
-      .then((realm) => {
-        realm.write(() => {
-          let specieResult = realm.objectForPrimaryKey('ScientificSpecies', scientificSpecieGuid);
-          if (isUpdated !== undefined) {
+          let specieResult: IScientificSpecies | undefined = realm.objectForPrimaryKey(
+            'ScientificSpecies',
+            scientificSpecieGuid,
+          );
+          if (specieResult && isUpdated !== undefined) {
             specieResult.isUpdated = isUpdated;
           }
         });
@@ -428,27 +445,32 @@ export const changeIsUpdatedStatus = ({ scientificSpecieGuid, isUpdated }) => {
 };
 
 // This function adds or removes the specie from User Species
-export const toggleUserSpecies = (guid, addSpecie = false) => {
+export const toggleUserSpecies = (guid: string, addSpecie: boolean = false) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {
         realm.write(() => {
-          let specieToToggle = realm.objectForPrimaryKey('ScientificSpecies', guid);
-          if (addSpecie) {
-            specieToToggle.isUserSpecies = true;
-          } else {
-            specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
+          let specieToToggle: IScientificSpecies | undefined = realm.objectForPrimaryKey(
+            'ScientificSpecies',
+            guid,
+          );
+          if (specieToToggle) {
+            if (addSpecie) {
+              specieToToggle.isUserSpecies = true;
+            } else {
+              specieToToggle.isUserSpecies = !specieToToggle.isUserSpecies;
+            }
           }
 
           // logging the success in to the db
           dbLog.info({
             logType: LogTypes.MANAGE_SPECIES,
             message: `Specie with guid ${guid} ${
-              specieToToggle.isUserSpecies ? 'added' : 'removed'
+              specieToToggle?.isUserSpecies ? 'added' : 'removed'
             }`,
           });
         });
-        resolve();
+        resolve(true);
       })
       .catch((err) => {
         console.error('Error at /repositories/species/toggleUserSpecies, ', err);
@@ -511,7 +533,7 @@ export const resetAllSpecies = () => {
       .then((realm) => {
         realm.write(() => {
           // fetches all the scientific species
-          let species = realm.objects('ScientificSpecies').filtered('isUserSpecies = true');
+          let species: any = realm.objects('ScientificSpecies').filtered('isUserSpecies = true');
 
           for (let specie of species) {
             specie.isUpdated = true;
@@ -543,7 +565,7 @@ export const resetAllSpecies = () => {
   });
 };
 
-export const getScientificSpeciesById = (id) => {
+export const getScientificSpeciesById = (id: string) => {
   return new Promise((resolve, reject) => {
     Realm.open(getSchema())
       .then((realm) => {

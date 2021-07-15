@@ -16,7 +16,7 @@ const Stack = createStackNavigator();
 const IS_ANDROID = Platform.OS === 'android';
 
 export default function AppNavigator() {
-  const { state } = React.useContext(NavigationContext);
+  const { showInitialStack } = React.useContext(NavigationContext);
   const netInfo = useNetInfo();
   const { dispatch } = useContext(InventoryContext);
   const { dispatch: userDispatch } = useContext(UserContext);
@@ -34,7 +34,7 @@ export default function AppNavigator() {
   };
 
   useEffect(() => {
-    if (!state.showInitialStack) {
+    if (!showInitialStack) {
       checkLoginAndSync({
         sync: false,
         dispatch: dispatch,
@@ -44,10 +44,10 @@ export default function AppNavigator() {
       });
       dailyLogUpdateCheck();
     }
-  }, [state.showInitialStack]);
+  }, [showInitialStack]);
 
   useEffect(() => {
-    if (!state.showInitialStack) {
+    if (!showInitialStack) {
       autoSync();
     }
   }, [netInfo]);
@@ -59,7 +59,7 @@ export default function AppNavigator() {
         barStyle={IS_ANDROID ? 'light-content' : 'dark-content'}
       />
       <Stack.Navigator headerMode="none">
-        {state.showInitialStack ? (
+        {showInitialStack ? (
           <Stack.Screen name="InitialLoading" component={InitialLoadingNavigator} />
         ) : (
           <Stack.Screen name="Main" component={MainNavigator} />
